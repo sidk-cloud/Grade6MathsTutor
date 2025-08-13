@@ -1428,37 +1428,325 @@ const FractionConverterComponent = ({ element, onComplete }: { element: Interact
   );
 };
 
-// Add remaining components as simplified generic components for now
+// Add remaining components with unique interactions (replacing generic placeholders)
 const AreaModelEquivalenceComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
-  return <GenericInteractive element={element} onComplete={onComplete} />;
+  const [target, setTarget] = useState({ num: 2, den: 3 });
+  const [num, setNum] = useState('');
+  const [den, setDen] = useState('');
+  const [completed, setCompleted] = useState(false);
+
+  const fractions = [
+    { num: 1, den: 2 }, { num: 2, den: 3 }, { num: 3, den: 4 }, { num: 3, den: 5 }, { num: 4, den: 5 }
+  ];
+
+  const check = () => {
+    const n = parseInt(num); const d = parseInt(den);
+    if (!d || !n) return;
+    if (n * target.den === d * target.num) {
+      setCompleted(true); onComplete(true);
+    }
+  };
+
+  const reset = () => {
+    setTarget(fractions[Math.floor(Math.random() * fractions.length)]);
+    setNum(''); setDen(''); setCompleted(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold text-center">Fraction Equivalence Model</h3>
+      <p className="text-sm text-gray-600 text-center">Enter a fraction equivalent to {target.num}/{target.den}</p>
+      <div className="flex justify-center gap-2">
+        <input disabled={completed} value={num} onChange={e=>setNum(e.target.value)} type="number" className="w-20 border rounded px-2 py-1 text-center" placeholder="num" />
+        <span className="text-xl font-bold">/</span>
+        <input disabled={completed} value={den} onChange={e=>setDen(e.target.value)} type="number" className="w-20 border rounded px-2 py-1 text-center" placeholder="den" />
+        {!completed && <button onClick={check} className="btn-primary">Check</button>}
+      </div>
+      {completed && <div className="text-center text-green-600 font-semibold">Correct! {num}/{den} ≡ {target.num}/{target.den}</div>}
+      <button onClick={reset} className="w-full btn-secondary">New Target</button>
+    </div>
+  );
 };
 
 const DecimalCalculatorComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
-  return <GenericInteractive element={element} onComplete={onComplete} />;
+  const ops = ['+', '-'] as const;
+  const [a, setA] = useState(1.2);
+  const [b, setB] = useState(0.7);
+  const [op, setOp] = useState<typeof ops[number]>('+');
+  const [answer, setAnswer] = useState('');
+  const [completed, setCompleted] = useState(false);
+
+  const correct = parseFloat((op === '+' ? a + b : a - b).toFixed(2));
+
+  const check = () => {
+    if (Math.abs(parseFloat(answer) - correct) < 0.01) { setCompleted(true); onComplete(true);} }
+  const reset = () => {
+    const rand = () => parseFloat((Math.random()*4+0.5).toFixed(1));
+    setA(rand()); setB(rand()); setOp(ops[Math.floor(Math.random()*ops.length)]); setAnswer(''); setCompleted(false);
+  };
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-center">Decimal Calculator</h3>
+      <p className="text-center text-lg font-bold">{a.toFixed(1)} {op} {b.toFixed(1)} = ?</p>
+      <div className="flex justify-center gap-2">
+        <input disabled={completed} value={answer} onChange={e=>setAnswer(e.target.value)} type="number" step="0.01" className="w-32 border rounded px-3 py-2 text-center" />
+        {!completed && <button onClick={check} className="btn-primary">Check</button>}
+      </div>
+      {completed && <div className="text-center text-green-600">Correct! {correct}</div>}
+      <button onClick={reset} className="w-full btn-secondary">New Problem</button>
+    </div>
+  );
 };
 
 const SequenceBuilderComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
-  return <GenericInteractive element={element} onComplete={onComplete} />;
+  const [start, setStart] = useState(3);
+  const [diff, setDiff] = useState(4);
+  const [guess, setGuess] = useState('');
+  const [completed, setCompleted] = useState(false);
+  const terms = [start, start+diff, start+2*diff, start+3*diff];
+  const correct = start+4*diff;
+  const check = () => { if (parseInt(guess) === correct){ setCompleted(true); onComplete(true);} };
+  const reset = () => { setStart(Math.floor(Math.random()*6)+1); setDiff(Math.floor(Math.random()*5)+2); setGuess(''); setCompleted(false); };
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-center">Sequence Builder</h3>
+      <p className="text-center text-sm text-gray-600">Find the next term of the arithmetic sequence.</p>
+      <div className="text-center text-xl font-mono">{terms.join(', ')}, <span className="text-blue-600">?</span></div>
+      <div className="flex justify-center gap-2">
+        <input value={guess} disabled={completed} onChange={e=>setGuess(e.target.value)} type="number" className="w-32 border rounded px-2 py-1 text-center" />
+        {!completed && <button onClick={check} className="btn-primary">Check</button>}
+      </div>
+      {completed && <div className="text-center text-green-600">Correct! Next term is {correct}</div>}
+      <button onClick={reset} className="w-full btn-secondary">New Sequence</button>
+    </div>
+  );
 };
 
 const MetricConverterComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
-  return <GenericInteractive element={element} onComplete={onComplete} />;
+  const units = ['mm','cm','m','km'] as const;
+  const factors: Record<string, number> = { mm:1, cm:10, m:1000, km:1_000_000 };
+  const [from, setFrom] = useState<'mm'|'cm'|'m'|'km'>('cm');
+  const [to, setTo] = useState<'mm'|'cm'|'m'|'km'>('m');
+  const [value, setValue] = useState(250);
+  const [answer, setAnswer] = useState('');
+  const [completed, setCompleted] = useState(false);
+  const correct = (value * factors[from]) / factors[to];
+  const check = () => { if (Math.abs(parseFloat(answer) - correct) < 0.001){ setCompleted(true); onComplete(true);} };
+  const reset = () => {
+    const v=[50,75,120,250,400,1250][Math.floor(Math.random()*6)];
+    const f=units[Math.floor(Math.random()*units.length)];
+    let t=units[Math.floor(Math.random()*units.length)];
+    while(t===f) t=units[Math.floor(Math.random()*units.length)];
+    setValue(v); setFrom(f); setTo(t); setAnswer(''); setCompleted(false);
+  };
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-center">Metric Converter</h3>
+      <p className="text-center">Convert {value}{from} to {to}</p>
+      <div className="flex justify-center gap-2">
+        <input value={answer} disabled={completed} onChange={e=>setAnswer(e.target.value)} type="number" className="w-36 border rounded px-2 py-1 text-center" placeholder={`in ${to}`} />
+        {!completed && <button onClick={check} className="btn-primary">Check</button>}
+      </div>
+      {completed && <div className="text-center text-green-600">Correct! {value}{from} = {correct}{to}</div>}
+      <button onClick={reset} className="w-full btn-secondary">New Conversion</button>
+    </div>
+  );
 };
 
 const AreaCalculatorComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
-  return <GenericInteractive element={element} onComplete={onComplete} />;
+  const [w,setW]=useState(5); const [h,setH]=useState(3); const [ans,setAns]=useState(''); const [completed,setCompleted]=useState(false);
+  const correct = w*h; const reset=()=>{ setW(Math.floor(Math.random()*8)+3); setH(Math.floor(Math.random()*7)+2); setAns(''); setCompleted(false);} ;
+  const check=()=>{ if(parseInt(ans)===correct){ setCompleted(true); onComplete(true);} };
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-center">Area of Rectangle</h3>
+      <div className="flex justify-center">
+        <div className="relative border-2 border-blue-300 bg-blue-50" style={{width: w*20, height: h*20}}>
+          <span className="absolute -top-6 left-1/2 -translate-x-1/2 text-sm">width {w}</span>
+          <span className="absolute top-1/2 -left-14 -translate-y-1/2 text-sm">height {h}</span>
+        </div>
+      </div>
+      <p className="text-center text-sm text-gray-600">Find the area.</p>
+      <div className="flex justify-center gap-2">
+        <input value={ans} disabled={completed} onChange={e=>setAns(e.target.value)} type="number" className="w-32 border rounded px-2 py-1 text-center" />
+        {!completed && <button onClick={check} className="btn-primary">Check</button>}
+      </div>
+      {completed && <div className="text-center text-green-600">Correct! Area = {correct} square units</div>}
+      <button onClick={reset} className="w-full btn-secondary">New Rectangle</button>
+    </div>
+  );
 };
 
 const CoordinatePlotterComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
-  return <GenericInteractive element={element} onComplete={onComplete} />;
+  const [point,setPoint]=useState<{x:number,y:number}>({x:2,y:-3});
+  const [selected,setSelected]=useState<{x:number,y:number}|null>(null);
+  const [completed,setCompleted]=useState(false);
+  const grid=[-5,-4,-3,-2,-1,0,1,2,3,4,5];
+  const check=(x:number,y:number)=>{ setSelected({x,y}); if(x===point.x && y===point.y){ setCompleted(true); onComplete(true);} };
+  const reset=()=>{ const coords=[-4,-3,-2,-1,1,2,3,4]; setPoint({x: coords[Math.floor(Math.random()*coords.length)], y: coords[Math.floor(Math.random()*coords.length)]}); setSelected(null); setCompleted(false); };
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-center">Coordinate Plotter</h3>
+      <p className="text-center text-sm text-gray-600">Plot the point ({point.x}, {point.y})</p>
+      <div className="flex justify-center">
+        <svg viewBox="0 0 220 220" className="border bg-white" style={{width:220,height:220}}>
+          {/* axes */}
+          <line x1={110} y1={0} x2={110} y2={220} stroke="#000" strokeWidth={1} />
+          <line x1={0} y1={110} x2={220} y2={110} stroke="#000" strokeWidth={1} />
+          {grid.map((g,i)=>{
+            const pos=10+ i*20; return (
+              <g key={g}>
+                <line x1={pos} y1={106} x2={pos} y2={114} stroke="#000" />
+                <line x1={106} y1={pos} x2={114} y2={pos} stroke="#000" />
+              </g>
+            );
+          })}
+          {grid.map((x,ix)=> grid.map((y,iy)=>{
+            const cx=10+ix*20; const cy=10+ (grid.length-1-iy)*20; // invert y
+            const active= selected && selected.x===x && selected.y===y;
+            const correct= active && completed;
+            return <circle key={`${x},${y}`} cx={cx} cy={cy} r={6} className={`cursor-pointer ${active? (correct? 'fill-green-500':'fill-red-500'): 'fill-blue-200 hover:fill-blue-400'}`} onClick={()=> !completed && check(x,y)} />;
+          }))}
+        </svg>
+      </div>
+      {completed && <div className="text-center text-green-600">Great! You plotted ({point.x}, {point.y}).</div>}
+      <button onClick={reset} className="w-full btn-secondary">New Point</button>
+    </div>
+  );
 };
 
 const BarGraphReaderComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
-  return <GenericInteractive element={element} onComplete={onComplete} />;
+  const categories=['A','B','C','D'];
+  const [values,setValues]=useState([3,5,7,4]);
+  const [targetIdx,setTargetIdx]=useState(1); // ask for B initially
+  const [answer,setAnswer]=useState('');
+  const [completed,setCompleted]=useState(false);
+  const check=()=>{ if(parseInt(answer)===values[targetIdx]){ setCompleted(true); onComplete(true);} };
+  const reset=()=>{ const newVals=values.map(()=> Math.floor(Math.random()*8)+2); setValues(newVals); setTargetIdx(Math.floor(Math.random()*4)); setAnswer(''); setCompleted(false); };
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-center">Bar Graph Reader</h3>
+      <p className="text-center text-sm text-gray-600">What is the value of category {categories[targetIdx]}?</p>
+      <div className="flex justify-center">
+        <svg viewBox="0 0 200 150" className="bg-white border" style={{width:200,height:150}}>
+          {values.map((v,i)=>{
+            const barWidth=30; const gap=15; const x=20 + i*(barWidth+gap); const height=v*10; const y=130-height; return (
+              <g key={i}>
+                <rect x={x} y={y} width={barWidth} height={height} className="fill-blue-400" />
+                <text x={x+barWidth/2} y={y-4} textAnchor="middle" className="fill-gray-700 text-xs">{v}</text>
+                <text x={x+barWidth/2} y={140} textAnchor="middle" className="fill-gray-800 text-sm font-semibold">{categories[i]}</text>
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+      <div className="flex justify-center gap-2">
+        <input value={answer} disabled={completed} onChange={e=>setAnswer(e.target.value)} type="number" className="w-24 border rounded px-2 py-1 text-center" />
+        {!completed && <button onClick={check} className="btn-primary">Check</button>}
+      </div>
+      {completed && <div className="text-center text-green-600">Correct! {categories[targetIdx]} = {values[targetIdx]}</div>}
+      <button onClick={reset} className="w-full btn-secondary">New Graph</button>
+    </div>
+  );
 };
 
 const ProbabilityWheelComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
-  return <GenericInteractive element={element} onComplete={onComplete} />;
+  const colorSets = [
+    ['red','red','blue','green','green','green'],
+    ['red','blue','blue','yellow','yellow','yellow'],
+    ['purple','purple','purple','orange','orange','green']
+  ];
+  const [segments,setSegments]=useState<string[]>(colorSets[0]);
+  const [targetColor,setTargetColor]=useState('green');
+  const [num,setNum]=useState('');
+  const [den,setDen]=useState('');
+  const [completed,setCompleted]=useState(false);
+  const reset=()=>{ const seg=colorSets[Math.floor(Math.random()*colorSets.length)]; setSegments(seg); setTargetColor(seg[Math.floor(Math.random()*seg.length)]); setNum(''); setDen(''); setCompleted(false); };
+  const count= segments.filter(c=>c===targetColor).length;
+  const total= segments.length;
+  const check=()=>{ if(parseInt(num)===count && parseInt(den)===total){ setCompleted(true); onComplete(true);} };
+  return (
+    <div className="space-y-4">
+      <h3 className="font-semibold text-center">Probability Wheel</h3>
+      <p className="text-center text-sm text-gray-600">Give the probability of landing on <span className="font-semibold" style={{color:targetColor}}>{targetColor}</span></p>
+      <div className="flex justify-center">
+        <svg viewBox="0 0 120 120" style={{width:120,height:120}} className="border rounded-full bg-white">
+          {segments.map((color,i)=>{ const angle= 2*Math.PI/segments.length; const start= i*angle; const end=(i+1)*angle; const x1=60+50*Math.cos(start); const y1=60+50*Math.sin(start); const x2=60+50*Math.cos(end); const y2=60+50*Math.sin(end); const largeArc= angle > Math.PI ? 1:0; const d=`M60,60 L${x1},${y1} A50,50 0 ${largeArc} 1 ${x2},${y2} Z`; return <path key={i} d={d} fill={color} stroke="#fff" strokeWidth={1}/>; })}
+        </svg>
+      </div>
+      <div className="flex justify-center items-center gap-2">
+        <input disabled={completed} value={num} onChange={e=>setNum(e.target.value)} type="number" className="w-16 border rounded px-2 py-1 text-center" placeholder="num" />
+        <span className="text-xl font-bold">/</span>
+        <input disabled={completed} value={den} onChange={e=>setDen(e.target.value)} type="number" className="w-16 border rounded px-2 py-1 text-center" placeholder="den" />
+        {!completed && <button onClick={check} className="btn-primary">Check</button>}
+      </div>
+      {completed && <div className="text-center text-green-600">Correct! {count}/{total}</div>}
+      <button onClick={reset} className="w-full btn-secondary">New Wheel</button>
+    </div>
+  );
+};
+
+// New specific components for previously generic fallbacks
+const HorizontalGrapherComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean)=>void }) => {
+  const nums=[-6,-4,-2,0,2,4,6];
+  const [target,setTarget]=useState(2);
+  const [selected,setSelected]=useState<number|null>(null);
+  const [completed,setCompleted]=useState(false);
+  useEffect(()=>{ setTarget(nums[Math.floor(Math.random()*nums.length)]); },[]);
+  const click=(n:number)=>{ if(completed) return; setSelected(n); if(n===target){ setCompleted(true); onComplete(true);} };
+  const reset=()=>{ setTarget(nums[Math.floor(Math.random()*nums.length)]); setSelected(null); setCompleted(false); };
+  return <div className="space-y-4"> <h3 className="font-semibold text-center">Horizontal Grapher</h3><p className="text-center text-sm text-gray-600">Click the point at {target}</p><div className="flex justify-center"> <svg viewBox="0 0 400 80" className="bg-white border rounded w-full max-w-xl"> <line x1={30} y1={40} x2={370} y2={40} stroke="#2563eb" strokeWidth={3} /> {nums.map((n,i)=>{ const x=30+i*(340/(nums.length-1)); return <g key={n}> <line x1={x} y1={30} x2={x} y2={50} stroke="#2563eb" strokeWidth={2} /> <circle cx={x} cy={40} r={8} className={`cursor-pointer ${selected===n ? (completed? 'fill-green-500':'fill-red-500') : 'fill-white hover:fill-blue-200'}`} stroke="#2563eb" strokeWidth={2} onClick={()=>click(n)} /> <text x={x} y={70} textAnchor="middle" className="fill-gray-700 text-xs">{n}</text> </g>; })} </svg></div>{completed && <div className="text-center text-green-600">Great! {target} located.</div>} <button onClick={reset} className="w-full btn-secondary">New Target</button></div>;
+};
+
+const VerticalGrapherComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean)=>void }) => {
+  const nums=[-6,-4,-2,0,2,4,6];
+  const [target,setTarget]=useState(-2);
+  const [selected,setSelected]=useState<number|null>(null);
+  const [completed,setCompleted]=useState(false);
+  useEffect(()=>{ setTarget(nums[Math.floor(Math.random()*nums.length)]); },[]);
+  const click=(n:number)=>{ if(completed) return; setSelected(n); if(n===target){ setCompleted(true); onComplete(true);} };
+  const reset=()=>{ setTarget(nums[Math.floor(Math.random()*nums.length)]); setSelected(null); setCompleted(false); };
+  return <div className="space-y-4"> <h3 className="font-semibold text-center">Vertical Grapher</h3><p className="text-center text-sm text-gray-600">Click the point at {target}</p><div className="flex justify-center"> <svg viewBox="0 0 120 320" className="bg-white border rounded"> <line x1={60} y1={20} x2={60} y2={300} stroke="#dc2626" strokeWidth={3} /> {nums.map((n,i)=>{ const y=20 + i*(280/(nums.length-1)); return <g key={n}> <line x1={45} y1={y} x2={75} y2={y} stroke="#dc2626" strokeWidth={2} /> <circle cx={60} cy={y} r={8} className={`cursor-pointer ${selected===n ? (completed? 'fill-green-500':'fill-red-500') : 'fill-white hover:fill-red-200'}`} stroke="#dc2626" strokeWidth={2} onClick={()=>click(n)} /> <text x={95} y={y+4} className="fill-gray-700 text-xs">{n}</text> </g>; })} </svg></div>{completed && <div className="text-center text-green-600">Correct!</div>} <button onClick={reset} className="w-full btn-secondary">New Target</button></div>;
+};
+
+const HorizontalIntegerGrapherComponent = HorizontalGrapherComponent; // reuse logic
+const VerticalIntegerGrapherComponent = VerticalGrapherComponent; // reuse logic
+
+const NumberLineOrdererComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean)=>void }) => {
+  const [nums,setNums]=useState<number[]>([-4,3,0,-1,5].sort(()=>Math.random()-0.5));
+  const [slots,setSlots]=useState<(number|null)[]>(Array(5).fill(null));
+  const [drag,setDrag]=useState<number|null>(null);
+  const [completed,setCompleted]=useState(false);
+  const correct=[...nums].sort((a,b)=>a-b);
+  const handleDragStart=(n:number)=> setDrag(n);
+  const handleDrop=(i:number)=>{ if(drag===null) return; const newSlots=[...slots]; newSlots[i]=drag; setSlots(newSlots); setDrag(null); };
+  const check=()=>{ if(slots.every(s=>s!==null) && slots.map(s=>s as number).every((v,i)=> v===correct[i])){ setCompleted(true); onComplete(true);} };
+  const reset=()=>{ const newNums=[-8,-3,-1,2,6,9].sort(()=>Math.random()-0.5).slice(0,5); setNums(newNums); setSlots(Array(5).fill(null)); setCompleted(false); };
+  return <div className="space-y-4"> <h3 className="font-semibold text-center">Number Line Orderer</h3><p className="text-center text-sm text-gray-600">Drag numbers below into increasing order.</p><div className="flex flex-wrap gap-2 justify-center">{nums.map(n=> <div key={n} draggable onDragStart={()=>handleDragStart(n)} className="px-3 py-2 bg-white border-2 border-indigo-300 rounded cursor-move font-bold">{n}</div>)}</div><div className="flex gap-2 justify-center">{[0,1,2,3,4].map(i=> <div key={i} onDragOver={e=>e.preventDefault()} onDrop={()=>handleDrop(i)} className="w-16 h-16 border-2 border-dashed flex items-center justify-center rounded text-lg font-bold {slots[i] && 'bg-indigo-100'}">{slots[i]}</div>)}</div>{!completed && slots.every(s=>s!==null) && <button onClick={check} className="btn-primary">Check Order</button>}{completed && <div className="text-center text-green-600">Perfect!</div>}<button onClick={reset} className="w-full btn-secondary">New Numbers</button></div>;
+};
+
+const ComparisonRulesVisualizerComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean)=>void }) => {
+  const rules=[
+    {id:1,text:'A negative number is always less than a positive number', valid:true},
+    {id:2,text:'A larger negative number (e.g. -9) is greater than a smaller negative (e.g. -2)', valid:false},
+    {id:3,text:'On a number line, numbers to the right are greater', valid:true},
+    {id:4,text:'Zero is greater than every positive number', valid:false}
+  ];
+  const [selected,setSelected]=useState<number|null>(null);
+  const [completed,setCompleted]=useState(false);
+  const check=(id:number)=>{ setSelected(id); const rule=rules.find(r=>r.id===id)!; if(rule.valid){ setCompleted(true); onComplete(true);} };
+  return <div className="space-y-4"> <h3 className="font-semibold text-center">Comparison Rules Visualizer</h3><p className="text-center text-sm text-gray-600">Select a TRUE rule about integers.</p><ul className="space-y-2">{rules.map(r=> <li key={r.id}><button onClick={()=>!completed && check(r.id)} className={`w-full text-left p-3 rounded border-2 transition ${selected===r.id ? (r.valid? 'bg-green-500 border-green-600 text-white':'bg-red-500 border-red-600 text-white') : 'bg-white border-gray-300 hover:border-blue-400'}`}>{r.text}</button></li>)}</ul>{completed && <div className="text-center text-green-600">Great! That rule is correct.</div>}</div>;
+};
+
+const ComparisonRulesApplicatorComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean)=>void }) => {
+  const [pairs,setPairs]=useState<[number,number][]>([[ -3,4],[2,7],[-8,-2]]);
+  const [index,setIndex]=useState(0);
+  const [completed,setCompleted]=useState(false);
+  const current=pairs[index];
+  const correctSymbol= current[0]<current[1]? '<': current[0]>current[1]? '>':'=';
+  const answer=(sym:string)=>{ if(sym===correctSymbol){ if(index===pairs.length-1){ setCompleted(true); onComplete(true);} else setIndex(i=>i+1); } };
+  const reset=()=>{ setPairs(([[ -5,0],[3,-1],[6,6]] as [number,number][]).sort(()=>Math.random()-0.5)); setIndex(0); setCompleted(false); };
+  return <div className="space-y-4"> <h3 className="font-semibold text-center">Comparison Rules Applicator</h3><p className="text-center text-sm text-gray-600">Choose the correct symbol for each pair.</p><div className="flex justify-center items-center gap-4 text-2xl font-bold"><span>{current[0]}</span><div className="flex gap-2">{['<','>','='].map(sym=> <button key={sym} onClick={()=>!completed && answer(sym)} className="w-12 h-12 border-2 rounded hover:bg-blue-100 text-xl">{sym}</button>)}</div><span>{current[1]}</span></div><p className="text-center text-sm">Problem {index+1} of {pairs.length}</p>{completed && <div className="text-center text-green-600">All comparisons correct!</div>}<button onClick={reset} className="w-full btn-secondary">Reset</button></div>;
 };
 
 // Main Interactive Practice Component
