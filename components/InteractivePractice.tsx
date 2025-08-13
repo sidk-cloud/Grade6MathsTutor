@@ -1529,10 +1529,13 @@ export default function InteractivePractice({ elements, onComplete }: Interactiv
       case 'NumberLineOrderer':
       case 'ComparisonRulesVisualizer':
       case 'ComparisonRulesApplicator':
+        return <GenericInteractive {...props} />;
+
+      // Map ordering helpers to ordering visualizer
       case 'AscendingOrderVisualizer':
       case 'AscendingOrderPractice':
       case 'DescendingOrderVisualizer':
-        return <GenericInteractive {...props} />;
+        return <IntegerOrderingVisualizerComponent {...props} />;
 
       // Map symbol/comparison helpers to concrete interactive components
       case 'SymbolPractice':
