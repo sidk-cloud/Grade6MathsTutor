@@ -7,7 +7,7 @@ import NumberLineVisualization from './visualizations/NumberLineVisualization';
 import FractionBarsVisualization from './visualizations/FractionBarsVisualization';
 import PrimeChecker from './visualizations/PrimeChecker';
 import AssessmentComponent from './AssessmentComponent';
-import InteractivePractice from './InteractivePractice';
+import InteractivePractice, { ScoreProvider } from './InteractivePractice';
 
 // Horizontal Number Line Visualization Component
 const HorizontalNumberLineVisualization = ({ concept }: { concept: Concept }) => {
@@ -978,10 +978,13 @@ export default function LessonViewer({ topic, onComplete, onBack, voiceEnabled }
 
         {/* Interactive Practice Component */}
         {allInteractiveElements.length > 0 ? (
-          <InteractivePractice
-            elements={allInteractiveElements}
-            onComplete={handlePracticeComplete}
-          />
+          <ScoreProvider>
+            <InteractivePractice
+              elements={allInteractiveElements}
+              onComplete={handlePracticeComplete}
+              topicId={topic.id}
+            />
+          </ScoreProvider>
         ) : (
           <div className="text-center p-8 bg-gray-50 rounded-lg">
             <Brain className="h-12 w-12 text-gray-400 mx-auto mb-4" />

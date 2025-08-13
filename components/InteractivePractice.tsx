@@ -1,13 +1,68 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext, useCallback } from 'react';
 import { CheckCircle, RefreshCw, Trophy, Star, Target } from 'lucide-react';
 import { InteractiveElement } from '../lib/curriculum';
 
 interface InteractivePracticeProps {
   elements: InteractiveElement[];
   onComplete: (elementId: string, correct: boolean) => void;
+  topicId?: string; // used for per-topic scoring persistence
 }
+
+// Scoring Context
+interface ScoreContextValue {
+  globalScore: number;
+  topicScores: Record<string, number>;
+  addPoints: (points: number, topicId?: string) => void;
+  resetTopic: (topicId: string) => void;
+  resetAll: () => void;
+}
+
+const ScoreContext = createContext<ScoreContextValue | null>(null);
+
+export const useScore = () => {
+  const ctx = useContext(ScoreContext);
+  if (!ctx) throw new Error('useScore must be used within <ScoreProvider>');
+  return ctx;
+};
+
+export const ScoreProvider = ({ children }: { children: React.ReactNode }) => {
+  const readLS = (key: string, fallback: any) => {
+    if (typeof window === 'undefined') return fallback;
+    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; }
+  };
+
+  const [globalScore, setGlobalScore] = useState<number>(() => readLS('globalScore', 0));
+  const [topicScores, setTopicScores] = useState<Record<string, number>>(() => readLS('topicScores', {}));
+
+  // Debounced persistence
+  const persist = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem('globalScore', JSON.stringify(globalScore));
+    localStorage.setItem('topicScores', JSON.stringify(topicScores));
+  }, [globalScore, topicScores]);
+
+  useEffect(() => {
+    const id = setTimeout(persist, 300); // debounce writes
+    return () => clearTimeout(id);
+  }, [persist]);
+
+  const addPoints = (points: number, topicId?: string) => {
+    setGlobalScore(g => g + points);
+    if (topicId) {
+      setTopicScores(ts => ({ ...ts, [topicId]: (ts[topicId] || 0) + points }));
+    }
+  };
+  const resetTopic = (topicId: string) => setTopicScores(ts => ({ ...ts, [topicId]: 0 }));
+  const resetAll = () => { setGlobalScore(0); setTopicScores({}); };
+
+  return (
+    <ScoreContext.Provider value={{ globalScore, topicScores, addPoints, resetTopic, resetAll }}>
+      {children}
+    </ScoreContext.Provider>
+  );
+};
 
 // Individual Interactive Components
 const IntegerSorter = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
@@ -1750,27 +1805,16 @@ const ComparisonRulesApplicatorComponent = ({ element, onComplete }: { element: 
 };
 
 // Main Interactive Practice Component
-export default function InteractivePractice({ elements, onComplete }: InteractivePracticeProps) {
+export default function InteractivePractice({ elements, onComplete, topicId }: InteractivePracticeProps) {
   const [completedElements, setCompletedElements] = useState<string[]>([]);
   const [currentElement, setCurrentElement] = useState(0);
-  const [score, setScore] = useState<number>(() => {
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('practiceScore');
-      return stored ? parseInt(stored) : 0;
-    }
-    return 0;
-  });
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('practiceScore', score.toString());
-    }
-  }, [score]);
+  const { globalScore, topicScores, addPoints, resetTopic } = useScore();
+  const topicScore = topicId ? (topicScores[topicId] || 0) : 0;
 
   const handleElementComplete = (elementId: string, correct: boolean) => {
     if (correct && !completedElements.includes(elementId)) {
       setCompletedElements(prev => [...prev, elementId]);
-      setScore(prev => prev + 10); // simple +10 per completion
+      addPoints(10, topicId);
       onComplete(elementId, correct);
     }
   };
@@ -1997,7 +2041,13 @@ export default function InteractivePractice({ elements, onComplete }: Interactiv
             <span className="font-semibold">
               Progress: {completedElements.length} of {elements.length} completed
             </span>
-            <span className="ml-4 text-sm text-green-700">Score: {score}</span>
+            <span className="ml-4 text-sm text-green-700">Topic Score: {topicScore} • Global: {globalScore}</span>
+            {topicId && (
+              <button
+                onClick={() => resetTopic(topicId)}
+                className="ml-4 text-xs px-2 py-1 bg-red-100 text-red-700 rounded hover:bg-red-200"
+              >Reset Topic Score</button>
+            )}
           </div>
         </div>
       )}
