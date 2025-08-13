@@ -1527,14 +1527,17 @@ export default function InteractivePractice({ elements, onComplete }: Interactiv
       case 'VerticalGrapher':
       case 'VerticalIntegerGrapher':
       case 'NumberLineOrderer':
-      case 'ComparisonSymbolHelper':
-      case 'SymbolPractice':
       case 'ComparisonRulesVisualizer':
       case 'ComparisonRulesApplicator':
       case 'AscendingOrderVisualizer':
       case 'AscendingOrderPractice':
       case 'DescendingOrderVisualizer':
         return <GenericInteractive {...props} />;
+
+      // Map symbol/comparison helpers to concrete interactive components
+      case 'SymbolPractice':
+      case 'ComparisonSymbolHelper':
+        return <IntegerComparator {...props} />;
 
       case 'FactorFinder':
         return <FactorFinderComponent {...props} />;
