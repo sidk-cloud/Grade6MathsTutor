@@ -1872,10 +1872,14 @@ export default function InteractivePractice({ elements, onComplete, topicId }: I
       case 'HorizontalIntegerGrapher':
       case 'VerticalGrapher':
       case 'VerticalIntegerGrapher':
-      case 'NumberLineOrderer':
-      case 'ComparisonRulesVisualizer':
-      case 'ComparisonRulesApplicator':
         return <GenericInteractive {...props} />;
+
+      case 'NumberLineOrderer':
+        return <NumberLineOrdererComponent {...props} />;
+      case 'ComparisonRulesVisualizer':
+        return <ComparisonRulesVisualizerComponent {...props} />;
+      case 'ComparisonRulesApplicator':
+        return <ComparisonRulesApplicatorComponent {...props} />;
 
       // Map ordering helpers to ordering visualizer
       case 'AscendingOrderVisualizer':
