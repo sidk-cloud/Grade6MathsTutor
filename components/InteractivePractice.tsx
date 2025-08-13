@@ -1753,10 +1753,24 @@ const ComparisonRulesApplicatorComponent = ({ element, onComplete }: { element: 
 export default function InteractivePractice({ elements, onComplete }: InteractivePracticeProps) {
   const [completedElements, setCompletedElements] = useState<string[]>([]);
   const [currentElement, setCurrentElement] = useState(0);
+  const [score, setScore] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('practiceScore');
+      return stored ? parseInt(stored) : 0;
+    }
+    return 0;
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('practiceScore', score.toString());
+    }
+  }, [score]);
 
   const handleElementComplete = (elementId: string, correct: boolean) => {
     if (correct && !completedElements.includes(elementId)) {
       setCompletedElements(prev => [...prev, elementId]);
+      setScore(prev => prev + 10); // simple +10 per completion
       onComplete(elementId, correct);
     }
   };
@@ -1909,6 +1923,12 @@ export default function InteractivePractice({ elements, onComplete }: Interactiv
 
       case 'IntegerCalculator':
         return <IntegerCalculatorComponent {...props} />;
+      case 'FactorDiscovery':
+        return <FactorDiscoveryComponent {...props} />;
+      case 'PrimeNumberHunt':
+        return <PrimeNumberHuntComponent {...props} />;
+      case 'PrimeCompositeClassifier':
+        return <PrimeCompositeClassifierComponent {...props} />;
         
       default:
         return <GenericInteractive {...props} />;
@@ -1977,6 +1997,7 @@ export default function InteractivePractice({ elements, onComplete }: Interactiv
             <span className="font-semibold">
               Progress: {completedElements.length} of {elements.length} completed
             </span>
+            <span className="ml-4 text-sm text-green-700">Score: {score}</span>
           </div>
         </div>
       )}
@@ -3102,4 +3123,39 @@ const DecimalPlaceChartComponent = ({ element, onComplete }: { element: Interact
 
 const IntegerCalculatorComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
   return <GenericInteractive element={element} onComplete={onComplete} />;
+};
+
+// New implementations for missing curriculum components
+const FactorDiscoveryComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean)=> void }) => {
+  const [number, setNumber] = useState(30);
+  const [found, setFound] = useState<number[]>([]);
+  const [input, setInput] = useState('');
+  const [completed, setCompleted] = useState(false);
+  const factors = Array.from({length:number}, (_,i)=> i+1).filter(i=> number % i ===0);
+  const add = () => { const v = parseInt(input); if(v && number % v===0 && !found.includes(v)){ const nf=[...found,v].sort((a,b)=>a-b); setFound(nf); if(nf.length===factors.length){ setCompleted(true); onComplete(true);} } setInput(''); };
+  const reset=()=>{ const candidates=[18,24,28,30,32,36,40]; const n=candidates[Math.floor(Math.random()*candidates.length)]; setNumber(n); setFound([]); setInput(''); setCompleted(false); };
+  return <div className="space-y-4"> <h3 className="font-semibold text-center">Factor Discovery</h3><p className="text-center text-sm text-gray-600">Find all factors of {number}</p><div className="flex justify-center gap-2"><input value={input} disabled={completed} onChange={e=>setInput(e.target.value)} type="number" className="w-28 border rounded px-2 py-1 text-center" onKeyDown={e=> e.key==='Enter' && add()} /><button onClick={add} disabled={!input || completed} className="btn-primary">Add</button></div><div className="flex flex-wrap gap-2 justify-center"> {factors.map(f=> <span key={f} className={`px-3 py-1 rounded border ${found.includes(f)? 'bg-green-500 text-white border-green-600':'bg-gray-100 text-gray-400 border-gray-300'}`}>{found.includes(f)? f : '?'}</span>)} </div>{completed && <div className="text-center text-green-600">All factors found!</div>}<button onClick={reset} className="w-full btn-secondary">New Number</button></div>;
+};
+
+const PrimeNumberHuntComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean)=> void }) => {
+  const [grid,setGrid]=useState<number[]>([]);
+  const [selected,setSelected]=useState<number[]>([]);
+  const [completed,setCompleted]=useState(false);
+  useEffect(()=>{ const nums=Array.from({length:25},(_,i)=> i+1 + Math.floor(Math.random()*40)); setGrid(nums); },[]);
+  const isPrime=(n:number)=>{ if(n<2) return false; for(let i=2;i<=Math.sqrt(n);i++){ if(n%i===0) return false;} return true; };
+  const toggle=(n:number)=>{ if(completed) return; setSelected(prev=> prev.includes(n)? prev.filter(x=>x!==n): [...prev,n]); };
+  useEffect(()=>{ if(grid.length>0){ const primes= grid.filter(isPrime); if(primes.length>0 && primes.every(p=> selected.includes(p)) && selected.every(s=> isPrime(s))){ setCompleted(true); onComplete(true);} } },[selected,grid,onComplete]);
+  const reset=()=>{ const nums=Array.from({length:25},(_,i)=> i+1 + Math.floor(Math.random()*40)); setGrid(nums); setSelected([]); setCompleted(false); };
+  return <div className="space-y-4"> <h3 className="font-semibold text-center">Prime Number Hunt</h3><p className="text-center text-sm text-gray-600">Select all prime numbers.</p><div className="grid grid-cols-5 gap-2">{grid.map(n=>{ const sel=selected.includes(n); const prime=isPrime(n); const show= completed && prime; return <button key={n} onClick={()=>toggle(n)} className={`p-3 rounded text-sm font-semibold border-2 ${sel? (prime? 'bg-green-500 border-green-600 text-white':'bg-red-500 border-red-600 text-white'): 'bg-white border-gray-300 hover:border-blue-400'} ${completed && !prime && 'opacity-50'}`}>{show? n: n}</button>; })}</div>{completed && <div className="text-center text-green-600">Great! All primes identified.</div>}<button onClick={reset} className="w-full btn-secondary">New Grid</button></div>;
+};
+
+const PrimeCompositeClassifierComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean)=> void }) => {
+  const [numbers,setNumbers]=useState<number[]>([12,17,19,21,25,29]);
+  const [primeBin,setPrimeBin]=useState<number[]>([]); const [compBin,setCompBin]=useState<number[]>([]);
+  const [completed,setCompleted]=useState(false);
+  const isPrime=(n:number)=>{ if(n<2) return false; for(let i=2;i<=Math.sqrt(n);i++){ if(n%i===0) return false;} return true; };
+  const move=(n:number,bin:'prime'|'comp')=>{ if(completed) return; if(bin==='prime'){ if(!primeBin.includes(n)) setPrimeBin([...primeBin,n]); setCompBin(compBin.filter(x=>x!==n)); } else { if(!compBin.includes(n)) setCompBin([...compBin,n]); setPrimeBin(primeBin.filter(x=>x!==n)); } };
+  useEffect(()=>{ if(numbers.every(n=> (isPrime(n) ? primeBin.includes(n) : compBin.includes(n))) && primeBin.concat(compBin).length===numbers.length){ setCompleted(true); onComplete(true);} },[primeBin,compBin,numbers,onComplete]);
+  const reset=()=>{ const pool=[11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]; const pick= pool.sort(()=>Math.random()-0.5).slice(0,8); setNumbers(pick); setPrimeBin([]); setCompBin([]); setCompleted(false); };
+  return <div className="space-y-4"> <h3 className="font-semibold text-center">Prime vs Composite</h3><p className="text-center text-sm text-gray-600">Classify each number.</p><div className="flex flex-wrap gap-2 justify-center">{numbers.map(n=> <div key={n} className="px-3 py-2 bg-white border-2 border-gray-300 rounded font-semibold">{n}<div className="mt-2 flex gap-1"><button onClick={()=>move(n,'prime')} className="px-2 py-1 text-xs rounded bg-blue-100 hover:bg-blue-200">Prime</button><button onClick={()=>move(n,'comp')} className="px-2 py-1 text-xs rounded bg-yellow-100 hover:bg-yellow-200">Composite</button></div></div>)}</div><div className="grid grid-cols-2 gap-4"> <div className="p-4 border-2 rounded border-blue-300"><h4 className="font-semibold mb-2">Prime</h4><div className="flex flex-wrap gap-2">{primeBin.map(n=> <span key={n} className="px-2 py-1 bg-blue-500 text-white rounded text-sm">{n}</span>)}</div></div> <div className="p-4 border-2 rounded border-yellow-300"><h4 className="font-semibold mb-2">Composite</h4><div className="flex flex-wrap gap-2">{compBin.map(n=> <span key={n} className="px-2 py-1 bg-yellow-500 text-white rounded text-sm">{n}</span>)}</div></div> </div>{completed && <div className="text-center text-green-600">All numbers correctly classified!</div>}<button onClick={reset} className="w-full btn-secondary">New Set</button></div>;
 };
