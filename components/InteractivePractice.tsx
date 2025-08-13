@@ -1869,10 +1869,13 @@ export default function InteractivePractice({ elements, onComplete, topicId }: I
         
       // Fallback for remaining generic components
       case 'HorizontalGrapher':
+        return <HorizontalGrapherComponent {...props} />;
       case 'HorizontalIntegerGrapher':
+        return <HorizontalIntegerGrapherComponent {...props} />;
       case 'VerticalGrapher':
+        return <VerticalGrapherComponent {...props} />;
       case 'VerticalIntegerGrapher':
-        return <GenericInteractive {...props} />;
+        return <VerticalIntegerGrapherComponent {...props} />;
 
       case 'NumberLineOrderer':
         return <NumberLineOrdererComponent {...props} />;
