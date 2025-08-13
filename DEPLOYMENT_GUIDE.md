@@ -107,6 +107,14 @@ If you need server-side features later:
 2. **Vercel**: `https://grade6-maths-tutor.vercel.app` (if you choose Vercel)
 3. **Custom Domain**: Configure as needed
 
+## 🔧 GitHub Pages Configuration
+
+The app is configured with:
+- **Base Path**: `/Grade6MathsTutor` (matches your repository name)
+- **Asset Prefix**: `/Grade6MathsTutor` (ensures all assets load correctly)
+- **Static Export**: Generates files in `out/` directory
+- **No Jekyll**: `.nojekyll` file prevents GitHub Pages from processing with Jekyll
+
 ## ✅ Testing Deployment
 
 After deployment, test:

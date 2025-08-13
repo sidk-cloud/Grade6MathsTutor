@@ -1405,7 +1405,7 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             type: 'input',
             title: 'Compare Integers',
             instructions: 'Enter <, >, or = to compare the integers',
-            component: 'IntegerComparison'
+            component: 'IntegerComparator'
           }
         ]
       }

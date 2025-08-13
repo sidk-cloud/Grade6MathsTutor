@@ -1503,14 +1503,29 @@ export default function InteractivePractice({ elements, onComplete }: Interactiv
       case 'ElevatorVisualization':
         return <ElevatorVisualization {...props} />;
       
-      // Use generic component for remaining similar interactive elements
+      // Use specific components for better educational experience
       case 'HorizontalNumberLine':
+        return <HorizontalNumberLineComponent {...props} />;
       case 'NumberLineComparator':
+        return <NumberLineComparatorComponent {...props} />;
+      case 'IntegerOrderingVisualizer':
+        return <IntegerOrderingVisualizerComponent {...props} />;
+      case 'FactorFinderVisualization':
+        return <FactorFinderVisualizationComponent {...props} />;
+      case 'PrimeCheckerVisualization':
+        return <PrimeCheckerVisualizationComponent {...props} />;
+      case 'CompositeNumberExplorer':
+        return <CompositeNumberExplorerComponent {...props} />;
+      case 'TemperatureComparator':
+        return <TemperatureComparatorComponent {...props} />;
+      case 'QuadrantExplorer':
+        return <QuadrantExplorerComponent {...props} />;
+        
+      // Fallback for remaining generic components
       case 'HorizontalGrapher':
       case 'HorizontalIntegerGrapher':
       case 'VerticalGrapher':
       case 'VerticalIntegerGrapher':
-      case 'IntegerOrderingVisualizer':
       case 'NumberLineOrderer':
       case 'ComparisonSymbolHelper':
       case 'SymbolPractice':
@@ -1942,6 +1957,814 @@ const LengthConverterComponent = ({ element, onComplete }: { element: Interactiv
         <RefreshCw className="h-4 w-4" />
         <span>New Conversion</span>
       </button>
+    </div>
+  );
+};
+
+// Additional comprehensive interactive components
+
+// Horizontal Number Line Component
+const HorizontalNumberLineComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
+  const [selectedPoint, setSelectedPoint] = useState<number | null>(null);
+  const [targetNumber, setTargetNumber] = useState(-3);
+  const [completed, setCompleted] = useState(false);
+
+  const numberRange = [-10, -8, -6, -4, -2, 0, 2, 4, 6, 8, 10];
+
+  const checkAnswer = (number: number) => {
+    setSelectedPoint(number);
+    if (number === targetNumber) {
+      setCompleted(true);
+      onComplete(true);
+    }
+  };
+
+  const generateNewProblem = () => {
+    setTargetNumber(numberRange[Math.floor(Math.random() * numberRange.length)]);
+    setSelectedPoint(null);
+    setCompleted(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800">{element.title}</h3>
+        <p className="text-gray-600 text-sm">Click on {targetNumber} on the number line</p>
+      </div>
+      
+      <div className="bg-blue-50 p-6 rounded-lg">
+        <div className="relative w-full h-20 bg-white rounded-lg border-2 border-blue-200 overflow-x-auto">
+          <svg viewBox="0 0 800 60" className="w-full h-full">
+            <line x1="50" y1="30" x2="750" y2="30" stroke="#3B82F6" strokeWidth="3" />
+            {numberRange.map((num, index) => {
+              const x = 50 + (index * 70);
+              return (
+                <g key={num}>
+                  <line x1={x} y1="20" x2={x} y2="40" stroke="#3B82F6" strokeWidth="2" />
+                  <text x={x} y="55" textAnchor="middle" className="fill-gray-700 text-sm font-medium">
+                    {num}
+                  </text>
+                  <circle
+                    cx={x}
+                    cy="30"
+                    r="8"
+                    className={`cursor-pointer ${
+                      selectedPoint === num
+                        ? completed && num === targetNumber
+                          ? 'fill-green-500'
+                          : 'fill-red-500'
+                        : 'fill-transparent hover:fill-blue-200'
+                    }`}
+                    stroke="#3B82F6"
+                    strokeWidth="2"
+                    onClick={() => !completed && checkAnswer(num)}
+                  />
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      </div>
+      
+      {completed && (
+        <div className="text-center text-green-700 font-semibold">
+          <CheckCircle className="h-8 w-8 mx-auto mb-2" />
+          Correct! You found {targetNumber} on the number line.
+        </div>
+      )}
+      
+      <button
+        onClick={generateNewProblem}
+        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+      >
+        <RefreshCw className="h-4 w-4" />
+        <span>New Number</span>
+      </button>
+    </div>
+  );
+};
+
+// Number Line Comparator Component
+const NumberLineComparatorComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
+  const [numbers] = useState([-5, -2, 1, 4]);
+  const [selectedPair, setSelectedPair] = useState<[number, number] | null>(null);
+  const [symbol, setSymbol] = useState<string>('');
+  const [completed, setCompleted] = useState(false);
+
+  const getCorrectSymbol = (a: number, b: number) => {
+    if (a < b) return '<';
+    if (a > b) return '>';
+    return '=';
+  };
+
+  const checkAnswer = (a: number, b: number, selectedSymbol: string) => {
+    setSelectedPair([a, b]);
+    setSymbol(selectedSymbol);
+    
+    if (selectedSymbol === getCorrectSymbol(a, b)) {
+      setCompleted(true);
+      onComplete(true);
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800">{element.title}</h3>
+        <p className="text-gray-600 text-sm">Use the number line to compare integers</p>
+      </div>
+      
+      <div className="bg-purple-50 p-6 rounded-lg">
+        <div className="mb-4">
+          <svg viewBox="0 0 600 80" className="w-full h-20 bg-white rounded border">
+            <line x1="50" y1="40" x2="550" y2="40" stroke="#8B5CF6" strokeWidth="2" />
+            {[-6, -4, -2, 0, 2, 4, 6].map((num, index) => {
+              const x = 50 + (index * 80);
+              return (
+                <g key={num}>
+                  <line x1={x} y1="35" x2={x} y2="45" stroke="#8B5CF6" strokeWidth="2" />
+                  <text x={x} y="60" textAnchor="middle" className="fill-gray-700 text-sm font-medium">
+                    {num}
+                  </text>
+                  {numbers.includes(num) && (
+                    <circle cx={x} cy="40" r="6" className="fill-purple-500" />
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4">
+          {[[-5, -2], [1, 4]].map(([a, b], pairIndex) => (
+            <div key={pairIndex} className="bg-white p-4 rounded border">
+              <div className="flex items-center justify-center space-x-4 text-xl">
+                <span className="font-bold">{a}</span>
+                <div className="flex space-x-1">
+                  {['<', '>', '='].map((sym) => (
+                    <button
+                      key={sym}
+                      onClick={() => checkAnswer(a, b, sym)}
+                      disabled={completed}
+                      className={`w-10 h-10 rounded border font-bold ${
+                        selectedPair?.[0] === a && selectedPair?.[1] === b && symbol === sym
+                          ? completed && sym === getCorrectSymbol(a, b)
+                            ? 'bg-green-500 text-white'
+                            : 'bg-red-500 text-white'
+                          : 'bg-gray-100 hover:bg-purple-100'
+                      }`}
+                    >
+                      {sym}
+                    </button>
+                  ))}
+                </div>
+                <span className="font-bold">{b}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Integer Ordering Visualizer Component
+const IntegerOrderingVisualizerComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
+  const [numbers, setNumbers] = useState([-8, -3, 0, 5, -1]);
+  const [userOrder, setUserOrder] = useState<number[]>([]);
+  const [draggedItem, setDraggedItem] = useState<number | null>(null);
+  const [completed, setCompleted] = useState(false);
+
+  const correctOrder = [...numbers].sort((a, b) => a - b);
+
+  const handleDragStart = (number: number) => {
+    setDraggedItem(number);
+  };
+
+  const handleDrop = (index: number) => {
+    if (draggedItem !== null) {
+      const newOrder = [...userOrder];
+      newOrder[index] = draggedItem;
+      setUserOrder(newOrder);
+      setDraggedItem(null);
+    }
+  };
+
+  const checkOrder = () => {
+    const isCorrect = userOrder.length === correctOrder.length && 
+      userOrder.every((num, index) => num === correctOrder[index]);
+    
+    if (isCorrect) {
+      setCompleted(true);
+      onComplete(true);
+    }
+  };
+
+  const reset = () => {
+    const newNumbers = [-10, -7, -3, -1, 2, 6, 8, 9].sort(() => Math.random() - 0.5).slice(0, 5);
+    setNumbers(newNumbers);
+    setUserOrder([]);
+    setCompleted(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800">{element.title}</h3>
+        <p className="text-gray-600 text-sm">Drag numbers to arrange from smallest to largest</p>
+      </div>
+      
+      <div className="bg-green-50 p-6 rounded-lg">
+        <div className="mb-4">
+          <h4 className="font-medium mb-2">Numbers to arrange:</h4>
+          <div className="flex flex-wrap gap-2">
+            {numbers.map((num) => (
+              <div
+                key={num}
+                draggable
+                onDragStart={() => handleDragStart(num)}
+                className="px-4 py-2 bg-white border-2 border-green-200 rounded-lg cursor-move hover:border-green-400 font-bold text-lg"
+              >
+                {num}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        <div className="mb-4">
+          <h4 className="font-medium mb-2">Your order (smallest to largest):</h4>
+          <div className="flex gap-2">
+            {[0, 1, 2, 3, 4].map((index) => (
+              <div
+                key={index}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={() => handleDrop(index)}
+                className={`w-16 h-16 border-2 border-dashed rounded-lg flex items-center justify-center font-bold text-lg ${
+                  userOrder[index] !== undefined ? 'bg-green-100 border-green-400' : 'border-gray-300'
+                }`}
+              >
+                {userOrder[index]}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {userOrder.length === 5 && (
+          <button
+            onClick={checkOrder}
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+          >
+            Check Order
+          </button>
+        )}
+      </div>
+      
+      {completed && (
+        <div className="text-center text-green-700 font-semibold">
+          <CheckCircle className="h-8 w-8 mx-auto mb-2" />
+          Perfect! You arranged the integers correctly: {correctOrder.join(' < ')}
+        </div>
+      )}
+      
+      <button
+        onClick={reset}
+        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+      >
+        <RefreshCw className="h-4 w-4" />
+        <span>New Numbers</span>
+      </button>
+    </div>
+  );
+};
+
+// Factor Finder Visualization Component
+const FactorFinderVisualizationComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
+  const [number, setNumber] = useState(12);
+  const [userFactors, setUserFactors] = useState<number[]>([]);
+  const [inputFactor, setInputFactor] = useState('');
+  const [completed, setCompleted] = useState(false);
+
+  const correctFactors = [];
+  for (let i = 1; i <= number; i++) {
+    if (number % i === 0) {
+      correctFactors.push(i);
+    }
+  }
+
+  const addFactor = () => {
+    const factor = parseInt(inputFactor);
+    if (factor && !userFactors.includes(factor)) {
+      if (number % factor === 0) {
+        const newFactors = [...userFactors, factor].sort((a, b) => a - b);
+        setUserFactors(newFactors);
+        if (newFactors.length === correctFactors.length) {
+          setCompleted(true);
+          onComplete(true);
+        }
+      }
+    }
+    setInputFactor('');
+  };
+
+  const generateNew = () => {
+    const numbers = [8, 12, 15, 18, 20, 24, 30];
+    setNumber(numbers[Math.floor(Math.random() * numbers.length)]);
+    setUserFactors([]);
+    setInputFactor('');
+    setCompleted(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800">{element.title}</h3>
+        <p className="text-gray-600 text-sm">Find all factors of {number}</p>
+      </div>
+      
+      <div className="bg-orange-50 p-6 rounded-lg">
+        <div className="grid grid-cols-6 gap-2 mb-4">
+          {Array.from({length: number}, (_, i) => i + 1).map(i => (
+            <div
+              key={i}
+              className={`w-8 h-8 border rounded flex items-center justify-center text-sm ${
+                number % i === 0 ? 'bg-orange-200 border-orange-400' : 'bg-gray-100 border-gray-300'
+              }`}
+            >
+              {i}
+            </div>
+          ))}
+        </div>
+        
+        <div className="flex space-x-2 mb-4">
+          <input
+            type="number"
+            value={inputFactor}
+            onChange={(e) => setInputFactor(e.target.value)}
+            placeholder="Enter a factor"
+            className="flex-1 border rounded px-3 py-2"
+            onKeyPress={(e) => e.key === 'Enter' && addFactor()}
+          />
+          <button
+            onClick={addFactor}
+            disabled={!inputFactor}
+            className="px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600 disabled:opacity-50"
+          >
+            Add
+          </button>
+        </div>
+        
+        <div>
+          <h4 className="font-medium mb-2">Factors found: {userFactors.length}/{correctFactors.length}</h4>
+          <div className="flex flex-wrap gap-2">
+            {userFactors.map(factor => (
+              <span key={factor} className="px-3 py-1 bg-green-100 border border-green-300 rounded">
+                {factor}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+      
+      {completed && (
+        <div className="text-center text-green-700 font-semibold">
+          <CheckCircle className="h-8 w-8 mx-auto mb-2" />
+          Excellent! You found all factors: {correctFactors.join(', ')}
+        </div>
+      )}
+      
+      <button
+        onClick={generateNew}
+        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+      >
+        <RefreshCw className="h-4 w-4" />
+        <span>New Number</span>
+      </button>
+    </div>
+  );
+};
+
+// Prime Checker Visualization Component  
+const PrimeCheckerVisualizationComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
+  const [number, setNumber] = useState(7);
+  const [userAnswer, setUserAnswer] = useState<'prime' | 'composite' | null>(null);
+  const [completed, setCompleted] = useState(false);
+  const [showFactors, setShowFactors] = useState(false);
+
+  const isPrime = (n: number) => {
+    if (n < 2) return false;
+    for (let i = 2; i <= Math.sqrt(n); i++) {
+      if (n % i === 0) return false;
+    }
+    return true;
+  };
+
+  const getFactors = (n: number) => {
+    const factors = [];
+    for (let i = 1; i <= n; i++) {
+      if (n % i === 0) factors.push(i);
+    }
+    return factors;
+  };
+
+  const checkAnswer = (answer: 'prime' | 'composite') => {
+    setUserAnswer(answer);
+    setShowFactors(true);
+    const correct = isPrime(number) ? answer === 'prime' : answer === 'composite';
+    if (correct) {
+      setCompleted(true);
+      onComplete(true);
+    }
+  };
+
+  const generateNew = () => {
+    const numbers = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+    setNumber(numbers[Math.floor(Math.random() * numbers.length)]);
+    setUserAnswer(null);
+    setCompleted(false);
+    setShowFactors(false);
+  };
+
+  const factors = getFactors(number);
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800">{element.title}</h3>
+        <p className="text-gray-600 text-sm">Is {number} prime or composite?</p>
+      </div>
+      
+      <div className="bg-indigo-50 p-6 rounded-lg">
+        <div className="text-center mb-6">
+          <div className="text-6xl font-bold text-indigo-800 mb-4">{number}</div>
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => checkAnswer('prime')}
+              disabled={completed}
+              className={`px-6 py-3 rounded-lg font-semibold ${
+                userAnswer === 'prime'
+                  ? completed && isPrime(number)
+                    ? 'bg-green-500 text-white'
+                    : 'bg-red-500 text-white'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              Prime
+            </button>
+            <button
+              onClick={() => checkAnswer('composite')}
+              disabled={completed}
+              className={`px-6 py-3 rounded-lg font-semibold ${
+                userAnswer === 'composite'
+                  ? completed && !isPrime(number)
+                    ? 'bg-green-500 text-white'
+                    : 'bg-red-500 text-white'
+                  : 'bg-blue-500 text-white hover:bg-blue-600'
+              }`}
+            >
+              Composite
+            </button>
+          </div>
+        </div>
+        
+        {showFactors && (
+          <div className="bg-white p-4 rounded-lg">
+            <h4 className="font-semibold mb-2">Factors of {number}:</h4>
+            <div className="flex flex-wrap gap-2 mb-2">
+              {factors.map(factor => (
+                <span key={factor} className="px-2 py-1 bg-indigo-100 border border-indigo-300 rounded text-sm">
+                  {factor}
+                </span>
+              ))}
+            </div>
+            <p className="text-sm text-gray-600">
+              {isPrime(number) 
+                ? `${number} is prime because it has exactly 2 factors: 1 and ${number}`
+                : `${number} is composite because it has more than 2 factors`
+              }
+            </p>
+          </div>
+        )}
+      </div>
+      
+      {completed && (
+        <div className="text-center text-green-700 font-semibold">
+          <CheckCircle className="h-8 w-8 mx-auto mb-2" />
+          Correct! {number} is {isPrime(number) ? 'prime' : 'composite'}.
+        </div>
+      )}
+      
+      <button
+        onClick={generateNew}
+        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+      >
+        <RefreshCw className="h-4 w-4" />
+        <span>New Number</span>
+      </button>
+    </div>
+  );
+};
+
+// Temperature Comparator Component
+const TemperatureComparatorComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
+  const [temp1, setTemp1] = useState(-5);
+  const [temp2, setTemp2] = useState(3);
+  const [selectedSymbol, setSelectedSymbol] = useState<string>('');
+  const [completed, setCompleted] = useState(false);
+
+  const getCorrectSymbol = () => {
+    if (temp1 < temp2) return '<';
+    if (temp1 > temp2) return '>';
+    return '=';
+  };
+
+  const checkAnswer = (symbol: string) => {
+    setSelectedSymbol(symbol);
+    if (symbol === getCorrectSymbol()) {
+      setCompleted(true);
+      onComplete(true);
+    }
+  };
+
+  const generateNew = () => {
+    const temperatures = [-15, -10, -5, 0, 5, 10, 15, 20, 25];
+    setTemp1(temperatures[Math.floor(Math.random() * temperatures.length)]);
+    setTemp2(temperatures[Math.floor(Math.random() * temperatures.length)]);
+    setSelectedSymbol('');
+    setCompleted(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800">{element.title}</h3>
+        <p className="text-gray-600 text-sm">Compare the temperatures</p>
+      </div>
+      
+      <div className="bg-cyan-50 p-6 rounded-lg">
+        <div className="flex items-center justify-center space-x-6">
+          <div className="text-center">
+            <div className="bg-white p-4 rounded-lg border-2 border-cyan-200 mb-2">
+              <div className="text-3xl font-bold">{temp1}°C</div>
+            </div>
+            <div className="text-sm text-gray-600">
+              {temp1 < 0 ? 'Below freezing' : temp1 === 0 ? 'Freezing point' : 'Above freezing'}
+            </div>
+          </div>
+          
+          <div className="flex flex-col space-y-2">
+            {['<', '>', '='].map((symbol) => (
+              <button
+                key={symbol}
+                onClick={() => checkAnswer(symbol)}
+                disabled={completed}
+                className={`w-16 h-16 rounded-lg border-2 text-2xl font-bold ${
+                  selectedSymbol === symbol
+                    ? completed && symbol === getCorrectSymbol()
+                      ? 'bg-green-500 border-green-600 text-white'
+                      : 'bg-red-500 border-red-600 text-white'
+                    : 'bg-white border-cyan-300 hover:border-cyan-400'
+                } ${completed ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+              >
+                {symbol}
+              </button>
+            ))}
+          </div>
+          
+          <div className="text-center">
+            <div className="bg-white p-4 rounded-lg border-2 border-cyan-200 mb-2">
+              <div className="text-3xl font-bold">{temp2}°C</div>
+            </div>
+            <div className="text-sm text-gray-600">
+              {temp2 < 0 ? 'Below freezing' : temp2 === 0 ? 'Freezing point' : 'Above freezing'}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {completed && (
+        <div className="text-center text-green-700 font-semibold">
+          <CheckCircle className="h-8 w-8 mx-auto mb-2" />
+          Correct! {temp1}°C {getCorrectSymbol()} {temp2}°C
+        </div>
+      )}
+      
+      <button
+        onClick={generateNew}
+        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+      >
+        <RefreshCw className="h-4 w-4" />
+        <span>New Temperatures</span>
+      </button>
+    </div>
+  );
+};
+
+// Quadrant Explorer Component
+const QuadrantExplorerComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
+  const [currentPoint, setCurrentPoint] = useState({ x: 3, y: 2 });
+  const [userAnswer, setUserAnswer] = useState<number | null>(null);
+  const [completed, setCompleted] = useState(false);
+
+  const getQuadrant = (x: number, y: number) => {
+    if (x > 0 && y > 0) return 1;
+    if (x < 0 && y > 0) return 2;
+    if (x < 0 && y < 0) return 3;
+    if (x > 0 && y < 0) return 4;
+    return 0; // on axis
+  };
+
+  const checkAnswer = (quadrant: number) => {
+    setUserAnswer(quadrant);
+    if (quadrant === getQuadrant(currentPoint.x, currentPoint.y)) {
+      setCompleted(true);
+      onComplete(true);
+    }
+  };
+
+  const generateNew = () => {
+    const coordinates = [
+      { x: 2, y: 3 }, { x: -3, y: 2 }, { x: -2, y: -3 }, { x: 3, y: -2 },
+      { x: 1, y: 4 }, { x: -4, y: 1 }, { x: -1, y: -4 }, { x: 4, y: -1 }
+    ];
+    setCurrentPoint(coordinates[Math.floor(Math.random() * coordinates.length)]);
+    setUserAnswer(null);
+    setCompleted(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800">{element.title}</h3>
+        <p className="text-gray-600 text-sm">Which quadrant contains the point ({currentPoint.x}, {currentPoint.y})?</p>
+      </div>
+      
+      <div className="bg-teal-50 p-6 rounded-lg">
+        <div className="relative bg-white border-2 border-teal-200 rounded-lg p-4 mb-4">
+          <svg viewBox="-6 -6 12 12" className="w-full h-80">
+            {/* Grid lines */}
+            {[-4, -2, 2, 4].map(i => (
+              <g key={i}>
+                <line x1={i} y1="-5" x2={i} y2="5" stroke="#e5e7eb" strokeWidth="0.1" />
+                <line x1="-5" y1={i} x2="5" y2={i} stroke="#e5e7eb" strokeWidth="0.1" />
+              </g>
+            ))}
+            
+            {/* Axes */}
+            <line x1="-5" y1="0" x2="5" y2="0" stroke="#374151" strokeWidth="0.2" />
+            <line x1="0" y1="-5" x2="0" y2="5" stroke="#374151" strokeWidth="0.2" />
+            
+            {/* Quadrant labels */}
+            <text x="2" y="-2" textAnchor="middle" className="fill-teal-600 font-bold text-lg">I</text>
+            <text x="-2" y="-2" textAnchor="middle" className="fill-teal-600 font-bold text-lg">II</text>
+            <text x="-2" y="2" textAnchor="middle" className="fill-teal-600 font-bold text-lg">III</text>
+            <text x="2" y="2" textAnchor="middle" className="fill-teal-600 font-bold text-lg">IV</text>
+            
+            {/* Current point */}
+            <circle 
+              cx={currentPoint.x} 
+              cy={-currentPoint.y} 
+              r="0.3" 
+              className="fill-red-500" 
+            />
+            <text 
+              x={currentPoint.x + 0.5} 
+              y={-currentPoint.y - 0.5} 
+              className="fill-red-600 font-bold text-sm"
+            >
+              ({currentPoint.x}, {currentPoint.y})
+            </text>
+          </svg>
+        </div>
+        
+        <div className="grid grid-cols-4 gap-2">
+          {[1, 2, 3, 4].map(quadrant => (
+            <button
+              key={quadrant}
+              onClick={() => checkAnswer(quadrant)}
+              disabled={completed}
+              className={`py-3 rounded-lg font-semibold ${
+                userAnswer === quadrant
+                  ? completed && quadrant === getQuadrant(currentPoint.x, currentPoint.y)
+                    ? 'bg-green-500 text-white'
+                    : 'bg-red-500 text-white'
+                  : 'bg-teal-100 text-teal-800 hover:bg-teal-200'
+              }`}
+            >
+              Quadrant {quadrant}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      {completed && (
+        <div className="text-center text-green-700 font-semibold">
+          <CheckCircle className="h-8 w-8 mx-auto mb-2" />
+          Correct! Point ({currentPoint.x}, {currentPoint.y}) is in Quadrant {getQuadrant(currentPoint.x, currentPoint.y)}.
+        </div>
+      )}
+      
+      <button
+        onClick={generateNew}
+        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+      >
+        <RefreshCw className="h-4 w-4" />
+        <span>New Point</span>
+      </button>
+    </div>
+  );
+};
+
+// Composite Number Explorer Component
+const CompositeNumberExplorerComponent = ({ element, onComplete }: { element: InteractiveElement; onComplete: (correct: boolean) => void }) => {
+  const [numbers] = useState([4, 6, 8, 9, 10, 12, 14, 15, 16, 18, 20, 21]);
+  const [selectedNumbers, setSelectedNumbers] = useState<number[]>([]);
+  const [completed, setCompleted] = useState(false);
+
+  const isComposite = (n: number) => {
+    if (n < 4) return false;
+    for (let i = 2; i <= Math.sqrt(n); i++) {
+      if (n % i === 0) return true;
+    }
+    return false;
+  };
+
+  const compositeNumbers = numbers.filter(isComposite);
+
+  const toggleNumber = (num: number) => {
+    if (selectedNumbers.includes(num)) {
+      setSelectedNumbers(selectedNumbers.filter(n => n !== num));
+    } else {
+      const newSelected = [...selectedNumbers, num];
+      setSelectedNumbers(newSelected);
+      
+      if (newSelected.length === compositeNumbers.length && 
+          newSelected.every(n => isComposite(n))) {
+        setCompleted(true);
+        onComplete(true);
+      }
+    }
+  };
+
+  const getFactors = (n: number) => {
+    const factors = [];
+    for (let i = 1; i <= n; i++) {
+      if (n % i === 0) factors.push(i);
+    }
+    return factors;
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-center">
+        <h3 className="text-lg font-semibold text-gray-800">{element.title}</h3>
+        <p className="text-gray-600 text-sm">Select all composite numbers (numbers with more than 2 factors)</p>
+      </div>
+      
+      <div className="bg-amber-50 p-6 rounded-lg">
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          {numbers.map(num => (
+            <button
+              key={num}
+              onClick={() => toggleNumber(num)}
+              disabled={completed}
+              className={`p-4 rounded-lg border-2 font-bold text-lg ${
+                selectedNumbers.includes(num)
+                  ? isComposite(num)
+                    ? 'bg-green-200 border-green-400 text-green-800'
+                    : 'bg-red-200 border-red-400 text-red-800'
+                  : 'bg-white border-amber-300 hover:border-amber-400'
+              }`}
+            >
+              {num}
+            </button>
+          ))}
+        </div>
+        
+        <div className="text-sm text-gray-600">
+          <p>Selected: {selectedNumbers.length} / {compositeNumbers.length} composite numbers</p>
+        </div>
+        
+        {selectedNumbers.length > 0 && (
+          <div className="mt-4 p-3 bg-white rounded border">
+            <h4 className="font-medium mb-2">Factors of selected numbers:</h4>
+            {selectedNumbers.map(num => (
+              <div key={num} className="text-sm mb-1">
+                <strong>{num}:</strong> {getFactors(num).join(', ')} 
+                <span className={isComposite(num) ? 'text-green-600 ml-2' : 'text-red-600 ml-2'}>
+                  ({isComposite(num) ? 'Composite' : 'Not composite'})
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      
+      {completed && (
+        <div className="text-center text-green-700 font-semibold">
+          <CheckCircle className="h-8 w-8 mx-auto mb-2" />
+          Perfect! You identified all composite numbers: {compositeNumbers.join(', ')}
+        </div>
+      )}
     </div>
   );
 };
