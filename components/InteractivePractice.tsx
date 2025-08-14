@@ -1885,9 +1885,10 @@ export default function InteractivePractice({ elements, onComplete, topicId }: I
         return <ComparisonRulesApplicatorComponent {...props} />;
 
       // Map ordering helpers to ordering visualizer
-      case 'AscendingOrderVisualizer':
-      case 'AscendingOrderPractice':
-      case 'DescendingOrderVisualizer':
+  case 'AscendingOrderVisualizer':
+  case 'AscendingOrderPractice':
+  case 'DescendingOrderVisualizer':
+  case 'DescendingOrderPractice':
         return <IntegerOrderingVisualizerComponent {...props} />;
 
       // Map symbol/comparison helpers to concrete interactive components
@@ -2507,11 +2508,12 @@ const IntegerOrderingVisualizerComponent = ({ element, onComplete }: { element: 
   const [draggedItem, setDraggedItem] = useState<number | null>(null);
   const [completed, setCompleted] = useState(false);
 
-  const correctOrder = [...numbers].sort((a, b) => a - b);
+  // Determine mode dynamically from component name/title/instructions
+  const isDescending = !!(element.component?.includes('Descending') || element.title?.toLowerCase().includes('descending') || element.instructions?.toLowerCase().includes('largest to smallest'));
 
-  const handleDragStart = (number: number) => {
-    setDraggedItem(number);
-  };
+  const correctOrder = [...numbers].sort((a, b) => isDescending ? b - a : a - b);
+
+  const handleDragStart = (number: number) => setDraggedItem(number);
 
   const handleDrop = (index: number) => {
     if (draggedItem !== null) {
@@ -2523,13 +2525,8 @@ const IntegerOrderingVisualizerComponent = ({ element, onComplete }: { element: 
   };
 
   const checkOrder = () => {
-    const isCorrect = userOrder.length === correctOrder.length && 
-      userOrder.every((num, index) => num === correctOrder[index]);
-    
-    if (isCorrect) {
-      setCompleted(true);
-      onComplete(true);
-    }
+    const isCorrect = userOrder.length === correctOrder.length && userOrder.every((n, i) => n === correctOrder[i]);
+    if (isCorrect) { setCompleted(true); onComplete(true); }
   };
 
   const reset = () => {
@@ -2543,14 +2540,14 @@ const IntegerOrderingVisualizerComponent = ({ element, onComplete }: { element: 
     <div className="space-y-4">
       <div className="text-center">
         <h3 className="text-lg font-semibold text-gray-800">{element.title}</h3>
-        <p className="text-gray-600 text-sm">Drag numbers to arrange from smallest to largest</p>
+        <p className="text-gray-600 text-sm">Drag numbers to arrange from {isDescending ? 'largest to smallest' : 'smallest to largest'}</p>
       </div>
-      
+
       <div className="bg-green-50 p-6 rounded-lg">
         <div className="mb-4">
           <h4 className="font-medium mb-2">Numbers to arrange:</h4>
           <div className="flex flex-wrap gap-2">
-            {numbers.map((num) => (
+            {numbers.map(num => (
               <div
                 key={num}
                 draggable
@@ -2562,46 +2559,36 @@ const IntegerOrderingVisualizerComponent = ({ element, onComplete }: { element: 
             ))}
           </div>
         </div>
-        
+
         <div className="mb-4">
-          <h4 className="font-medium mb-2">Your order (smallest to largest):</h4>
+          <h4 className="font-medium mb-2">Your order ({isDescending ? 'largest → smallest' : 'smallest → largest'}):</h4>
           <div className="flex gap-2">
-            {[0, 1, 2, 3, 4].map((index) => (
+            {[0,1,2,3,4].map(index => (
               <div
                 key={index}
-                onDragOver={(e) => e.preventDefault()}
+                onDragOver={e => e.preventDefault()}
                 onDrop={() => handleDrop(index)}
-                className={`w-16 h-16 border-2 border-dashed rounded-lg flex items-center justify-center font-bold text-lg ${
-                  userOrder[index] !== undefined ? 'bg-green-100 border-green-400' : 'border-gray-300'
-                }`}
+                className={`w-16 h-16 border-2 border-dashed rounded-lg flex items-center justify-center font-bold text-lg ${userOrder[index] !== undefined ? 'bg-green-100 border-green-400' : 'border-gray-300'}`}
               >
                 {userOrder[index]}
               </div>
             ))}
           </div>
         </div>
-        
-        {userOrder.length === 5 && (
-          <button
-            onClick={checkOrder}
-            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-          >
-            Check Order
-          </button>
+
+        {userOrder.length === correctOrder.length && (
+          <button onClick={checkOrder} className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Check Order</button>
         )}
       </div>
-      
+
       {completed && (
         <div className="text-center text-green-700 font-semibold">
           <CheckCircle className="h-8 w-8 mx-auto mb-2" />
-          Perfect! You arranged the integers correctly: {correctOrder.join(' < ')}
+          Perfect! You arranged the integers correctly: {correctOrder.join(isDescending ? ' > ' : ' < ')}
         </div>
       )}
-      
-      <button
-        onClick={reset}
-        className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
-      >
+
+      <button onClick={reset} className="w-full flex items-center justify-center space-x-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300">
         <RefreshCw className="h-4 w-4" />
         <span>New Numbers</span>
       </button>
