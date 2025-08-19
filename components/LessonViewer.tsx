@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
+import { useMastery } from '../context/MasteryContext';
 import { Play, Pause, SkipForward, BookOpen, Brain, Target, Award } from 'lucide-react';
-import { MathTopic, Concept } from '../lib/curriculum';
+import { MathTopic, Concept } from '../lib/comprehensive-curriculum';
 import NumberLineVisualization from './visualizations/NumberLineVisualization';
 import FractionBarsVisualization from './visualizations/FractionBarsVisualization';
 import PrimeChecker from './visualizations/PrimeChecker';
@@ -670,6 +671,34 @@ interface LessonViewerProps {
 
 type LessonSection = 'overview' | 'concepts' | 'practice' | 'assessment';
 
+// Lightweight Quick Check Quiz Component
+const QuickCheckQuiz: React.FC<{concept: Concept}> = ({concept}) => {
+  const { recordAttempt, getSkill } = useMastery();
+  const objectives = concept.interactiveElements.flatMap(e=> (e as any).objectives || []);
+  const distinct = Array.from(new Set(objectives));
+  if(distinct.length===0) return null;
+  // Generate a simple true/false or multiple-choice question from first objective heuristically
+  const prompt = `Which statement best matches an objective of this concept?`;
+  const correct = distinct[0];
+  const distractors = distinct.slice(1,4);
+  const options = [correct, ...distractors].sort(()=>Math.random()-0.5);
+  const [selected,setSelected]=useState<string|undefined>();
+  const [done,setDone]=useState(false);
+  const select=(opt:string)=>{ if(done) return; setSelected(opt); setDone(true); if(opt===correct){ recordAttempt('QC_'+concept.id, true, 0, 0);} else { recordAttempt('QC_'+concept.id, false, 0, 0);} };
+  return (
+    <div className="mt-6 border rounded-lg p-4 bg-indigo-50">
+      <h4 className="font-semibold text-indigo-800 mb-2">Quick Check</h4>
+      <p className="text-sm text-indigo-700 mb-3">{prompt}</p>
+      <div className="space-y-2">
+        {options.map(opt=> (
+          <button key={opt} onClick={()=>select(opt)} className={`w-full text-left px-3 py-2 rounded border text-sm transition ${selected? (opt===correct? 'bg-green-500 border-green-600 text-white': opt===selected? 'bg-red-500 border-red-600 text-white':'bg-white border-gray-300') : 'bg-white border-gray-300 hover:border-indigo-400'}`}>{opt}</button>
+        ))}
+      </div>
+      {done && <div className="mt-3 text-sm font-medium {selected===correct? 'text-green-700':'text-red-700'}">{selected===correct? 'Correct!':'Review the objectives above.'}</div>}
+    </div>
+  );
+};
+
 export default function LessonViewer({ topic, onComplete, onBack, voiceEnabled }: LessonViewerProps) {
   const [currentSection, setCurrentSection] = useState<LessonSection>('overview');
   const [currentConceptIndex, setCurrentConceptIndex] = useState(0);
@@ -917,6 +946,9 @@ export default function LessonViewer({ topic, onComplete, onBack, voiceEnabled }
               ))}
             </div>
           )}
+
+          {/* Inline quick knowledge check */}
+          <QuickCheckQuiz concept={currentConcept} />
         </div>
 
         {/* Navigation */}

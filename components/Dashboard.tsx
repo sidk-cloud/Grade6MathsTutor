@@ -1,7 +1,7 @@
 'use client';
 
 import { Award, Target, TrendingUp, Calendar, Star } from 'lucide-react';
-import { MathTopic, UserProgress } from '../lib/curriculum';
+import { MathTopic, UserProgress } from '../lib/comprehensive-curriculum';
 
 interface DashboardProps {
   userProgress: UserProgress;

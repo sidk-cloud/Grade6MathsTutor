@@ -1,6 +1,6 @@
 'use client';
 
-import { UserProgress } from '../lib/curriculum';
+import { UserProgress } from '../lib/comprehensive-curriculum';
 
 interface ProgressTrackerProps {
   userProgress: UserProgress;

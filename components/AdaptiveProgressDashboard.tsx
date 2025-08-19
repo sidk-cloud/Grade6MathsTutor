@@ -32,7 +32,16 @@ export const AdaptiveProgressDashboard: React.FC<AdaptiveProgressDashboardProps>
   // Ensure this only renders on client side to prevent hydration mismatches
   useEffect(() => {
     setIsClient(true);
+    console.log('AdaptiveProgressDashboard: Client initialized, skills count:', Object.keys(skills).length);
   }, []);
+
+  // Debug skills data
+  useEffect(() => {
+    console.log('AdaptiveProgressDashboard: Skills updated:', Object.keys(skills).length, 'skills');
+    if (Object.keys(skills).length > 0) {
+      console.log('Sample skill:', Object.values(skills)[0]);
+    }
+  }, [skills]);
 
   if (!isClient) {
     return (
@@ -70,6 +79,23 @@ export const AdaptiveProgressDashboard: React.FC<AdaptiveProgressDashboardProps>
   const weekly = generateWeeklyPlan(skills);
   const badges = deriveBadges(skills);
   const longestStreak = skillList.reduce((m,s)=> Math.max(m,s.streak), 0);
+
+  // Show helpful message if no data exists
+  if (skillList.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-lg font-semibold text-blue-800 mb-2">Start Your Learning Journey!</h3>
+          <p className="text-blue-700 mb-3">
+            Your progress dashboard will show up here once you start practicing. Try some lessons or use the AI ChatBot to begin!
+          </p>
+          <p className="text-sm text-blue-600">
+            <strong>For testing:</strong> Open browser console and run <code className="bg-blue-100 px-1 rounded">populateSampleData()</code> to see sample progress data.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

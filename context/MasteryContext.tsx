@@ -70,6 +70,7 @@ export const MasteryProvider: React.FC<{children:React.ReactNode}> = ({children}
   // Initialize from localStorage on client side only
   useEffect(() => {
     const loadedSkills = load();
+    console.log('MasteryProvider: Loaded skills:', Object.keys(loadedSkills).length, 'skills');
     setSkills(loadedSkills);
     setIsInitialized(true);
   }, []);
@@ -84,10 +85,67 @@ export const MasteryProvider: React.FC<{children:React.ReactNode}> = ({children}
 
   useEffect(()=>{ if(!dirty) return; const id=setTimeout(()=>{ save(skills); setDirty(false); }, 400); return ()=> clearTimeout(id); },[skills,dirty]);
 
+  // Don't render children until initialized to prevent hydration mismatches
+  if (!isInitialized) {
+    return <div>Loading mastery data...</div>;
+  }
+
   return <MasteryContext.Provider value={{skills,recordAttempt,getSkill,getDueSkills,resetSkill}}>{children}</MasteryContext.Provider>;
 };
 
 export function useMastery(){ const ctx=useContext(MasteryContext); if(!ctx) throw new Error('useMastery must be inside MasteryProvider'); return ctx; }
+
+// Function to populate sample data for testing (call this from browser console)
+export function populateSampleData() {
+  if (typeof window === 'undefined') return;
+  
+  const sampleSkills: Record<string, SkillMastery> = {
+    'addition-basic': {
+      skillId: 'addition-basic',
+      level: 3,
+      accuracy: 85,
+      avgLatencyMs: 2500,
+      nextReview: Date.now() - 60000, // Due for review
+      attempts: 12,
+      streak: 5,
+      lastUpdated: Date.now() - 86400000
+    },
+    'subtraction-basic': {
+      skillId: 'subtraction-basic', 
+      level: 2,
+      accuracy: 70,
+      avgLatencyMs: 3200,
+      nextReview: Date.now() + 1800000, // 30 minutes from now
+      attempts: 8,
+      streak: 2,
+      lastUpdated: Date.now() - 43200000
+    },
+    'multiplication-tables': {
+      skillId: 'multiplication-tables',
+      level: 4,
+      accuracy: 92,
+      avgLatencyMs: 1800,
+      nextReview: Date.now() - 3600000, // Due for review
+      attempts: 25,
+      streak: 12,
+      lastUpdated: Date.now() - 7200000
+    },
+    'fractions-intro': {
+      skillId: 'fractions-intro',
+      level: 1,
+      accuracy: 60,
+      avgLatencyMs: 4500,
+      nextReview: Date.now() + 300000, // 5 minutes from now
+      attempts: 4,
+      streak: 1,
+      lastUpdated: Date.now() - 1800000
+    }
+  };
+  
+  localStorage.setItem('masteryStateV1', JSON.stringify(sampleSkills));
+  console.log('Sample mastery data populated! Refresh the page to see changes.');
+  return sampleSkills;
+}
 
 // Helper to compute dynamic difficulty parameters from skill state
 export function computeDifficulty(skill:SkillMastery | undefined){

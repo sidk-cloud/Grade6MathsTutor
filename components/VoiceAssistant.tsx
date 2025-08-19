@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { MathTopic } from '../lib/curriculum';
+import { MathTopic } from '../lib/comprehensive-curriculum';
 
 interface VoiceAssistantProps {
   currentTopic: MathTopic | null;

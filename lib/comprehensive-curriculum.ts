@@ -25,6 +25,12 @@ export interface InteractiveElement {
   instructions: string;
   component: string;
   validation?: any;
+  // Optional learning objective tags for adaptive engine
+  objectives?: string[];
+  // Explicit skill identifier (defaults to id if omitted)
+  skillId?: string;
+  // Optional multi-tier hints (concept -> worked example -> rationale)
+  hints?: string[];
 }
 
 export interface Concept {
@@ -444,7 +450,17 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             type: 'clickable',
             title: 'Compare Using Number Lines',
             instructions: 'Click on the greater integer shown on the number line',
-            component: 'NumberLineComparator'
+            component: 'NumberLineComparator',
+            skillId: 'INT_COMPARE_LINE',
+            objectives: [
+              'Identify the greater of two integers using spatial position',
+              'Reinforce concept: rightward means greater on number lines'
+            ],
+            hints: [
+              'Look at which integer is further right',
+              'If both are negative, the one closer to zero is greater',
+              'Zero is greater than any negative number'
+            ]
           }
         ]
       },
@@ -480,7 +496,17 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             type: 'dragDrop',
             title: 'Order Integers Using Number Lines',
             instructions: 'Use the number line to help you arrange integers from smallest to largest',
-            component: 'NumberLineOrderer'
+            component: 'NumberLineOrderer',
+            skillId: 'INT_ORDER_LINE',
+            objectives: [
+              'Sequence integers using their relative positions',
+              'Internalize ordering via spatial reasoning'
+            ],
+            hints: [
+              'Place each integer mentally on a line',
+              'Start with the most negative (furthest left)',
+              'Move rightwards to build ascending order'
+            ]
           }
         ]
       }
@@ -548,7 +574,17 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             type: 'input',
             title: 'Symbol Selection Practice',
             instructions: 'Choose the correct symbol (>, <, =) for each comparison',
-            component: 'SymbolPractice'
+            component: 'SymbolPractice',
+            skillId: 'INT_SYMBOL_APPLY',
+            objectives: [
+              'Apply >, <, = correctly for integer pairs',
+              'Transition from visual models to symbolic comparisons'
+            ],
+            hints: [
+              'Positive beats negative',
+              'Among negatives, closer to zero is greater',
+              'Zero is greater than any negative'
+            ]
           }
         ]
       },
@@ -582,7 +618,17 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             type: 'dragDrop',
             title: 'Apply Comparison Rules',
             instructions: 'Drag the correct comparison symbol between each pair of integers',
-            component: 'ComparisonRulesApplicator'
+            component: 'ComparisonRulesApplicator',
+            skillId: 'INT_RULES_APPLY',
+            objectives: [
+              'Select correct comparison based on integer rules',
+              'Demonstrate mastery of rule set without visual aids'
+            ],
+            hints: [
+              'Positive > negative',
+              'If both negative, compare distances from zero',
+              'Equal numbers get ='
+            ]
           }
         ]
       }
@@ -662,7 +708,14 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             type: 'dragDrop',
             title: 'Arrange in Ascending Order',
             instructions: 'Drag integers to arrange them from smallest to largest',
-            component: 'AscendingOrderPractice'
+            component: 'AscendingOrderPractice',
+            skillId: 'INT_ORDER_ASC',
+            objectives: ['Order integers ascending','Compare relative magnitudes'],
+            hints: [
+              'Start with the most negative number (furthest left on a number line).',
+              'Zero sits between negatives and positives.',
+              'After placing negatives and zero, order positives from least to greatest.'
+            ]
           }
         ]
       },
@@ -698,7 +751,14 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             type: 'dragDrop',
             title: 'Arrange in Descending Order',
             instructions: 'Drag integers to arrange them from largest to smallest',
-            component: 'DescendingOrderPractice'
+            component: 'DescendingOrderPractice',
+            skillId: 'INT_ORDER_DESC',
+            objectives: ['Order integers descending','Identify largest vs smallest integers'],
+            hints: [
+              'Begin with the largest positive integer.',
+              'Zero comes after positive integers in descending order.',
+              'More negative numbers appear last (they are smaller).'
+            ]
           }
         ]
       }
@@ -4062,7 +4122,17 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             type: 'input',
             title: 'Prediction Maker',
             instructions: 'Make predictions based on given probabilities',
-            component: 'PredictionMaker'
+            component: 'PredictionMaker',
+            skillId: 'PROB_PREDICT',
+            objectives: [
+              'Use probability fractions to form expected counts',
+              'Relate probability to real-world repeated trials'
+            ],
+            hints: [
+              'Multiply probability by number of trials',
+              'Keep fractions exact before converting to decimals',
+              'Round sensibly if answer not whole'
+            ]
           }
         ]
       }
@@ -4149,7 +4219,17 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             type: 'clickable',
             title: 'Probability Experiment',
             instructions: 'Conduct experiments and track results',
-            component: 'ProbabilityExperiment'
+            component: 'ProbabilityExperiment',
+            skillId: 'PROB_EXPERIMENT',
+            objectives: [
+              'Record frequency data from experiments',
+              'Compute experimental probability as fraction and decimal'
+            ],
+            hints: [
+              'Tally each result carefully',
+              'Experimental probability = successes / trials',
+              'Compare with theoretical to see convergence'
+            ]
           }
         ]
       }
@@ -4979,6 +5059,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
         ],
         interactiveElements: [
           {
+            id: 'mass-conversion-practice',
+            type: 'calculator',
+            title: 'Mass Conversion Practice',
+            instructions: 'Convert between grams, kilograms and tonnes',
+            component: 'MassConverter',
+            skillId: 'MASS_CONVERT',
+            objectives: [
+              'Convert between grams, kilograms and tonnes',
+              'Scale masses by powers of ten'
+            ],
+            hints: [
+              '1000g = 1kg',
+              'Move the decimal three places when converting kg ↔ g',
+              '1 tonne = 1000kg'
+            ]
+          },
+          {
             id: 'mass-estimator',
             type: 'clickable',
             title: 'Mass Estimation Game',
@@ -5173,6 +5270,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
         ],
         interactiveElements: [
           {
+            id: 'volume-conversion-practice',
+            type: 'calculator',
+            title: 'Volume Conversion Practice',
+            instructions: 'Convert between mL, L and cm³',
+            component: 'VolumeConverter',
+            skillId: 'VOLUME_CONVERT',
+            objectives: [
+              'Convert between mL, L and cm³',
+              'Relate equivalent volume units'
+            ],
+            hints: [
+              '1000mL = 1L',
+              '1mL = 1cm³',
+              'Multiply or divide by 1000 moving between mL and L'
+            ]
+          },
+          {
             id: 'container-comparison',
             type: 'clickable',
             title: 'Container Comparison',
@@ -5278,6 +5392,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             title: 'Coordinate Treasure Hunt',
             instructions: 'Find treasures using coordinate clues',
             component: 'CoordinateTreasureHunt'
+          },
+          {
+            id: 'coordinate-plot-practice',
+            type: 'input',
+            title: 'Coordinate Plot Practice',
+            instructions: 'Plot given coordinates on the grid',
+            component: 'IntegerCoordinatePlotter',
+            skillId: 'COORD_PLOT',
+            objectives: [
+              'Identify ordered pairs in all four quadrants',
+              'Relate sign of coordinates to quadrant position'
+            ],
+            hints: [
+              'First value is x (left/right)',
+              'Second value is y (up/down)',
+              'Negative x → left, negative y → down'
+            ]
           }
         ]
       }
@@ -5375,6 +5506,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             title: 'Net Folding Activity',
             instructions: 'Fold nets to create 3D shapes',
             component: 'NetFolder'
+          },
+          {
+            id: 'shape-volume-builder',
+            type: 'calculator',
+            title: 'Prism Volume Builder',
+            instructions: 'Select dimensions to match target volume',
+            component: 'Shape3DBuilder',
+            skillId: 'PRISM_VOLUME_MATCH',
+            objectives: [
+              'Relate dimensions to volume of rectangular prisms',
+              'Factor volumes into dimension triples'
+            ],
+            hints: [
+              'Volume = length × width × height',
+              'Try factoring the target volume',
+              'Swap dimensions if stuck'
+            ]
           }
         ]
       }
@@ -5475,6 +5623,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             title: 'Graph Detective',
             instructions: 'Solve mysteries by interpreting data displays',
             component: 'GraphDetective'
+          },
+          {
+            id: 'data-interpret-practice',
+            type: 'input',
+            title: 'Data Interpretation Practice',
+            instructions: 'Answer questions about the displayed data',
+            component: 'DataDisplayInterpreter',
+            skillId: 'DATA_INTERPRET',
+            objectives: [
+              'Extract values from bar and line graphs',
+              'Compare categories and compute differences'
+            ],
+            hints: [
+              'Read axis labels carefully',
+              'Line up with grid lines for exact values',
+              'Look for max/min first'
+            ]
           }
         ]
       }
@@ -6371,6 +6536,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             title: 'Data Collection Tool',
             instructions: 'Collect and organize data for investigations',
             component: 'DataCollector'
+          },
+          {
+            id: 'investigation-step-order',
+            type: 'dragDrop',
+            title: 'Investigation Step Sequencer',
+            instructions: 'Arrange investigation steps in correct order',
+            component: 'InvestigationPlanner',
+            skillId: 'INVESTIGATION_PLAN',
+            objectives: [
+              'Sequence steps of a statistical investigation',
+              'Differentiate data collection from analysis'
+            ],
+            hints: [
+              'Start with a question',
+              'Collect before you analyse',
+              'Conclude after interpreting results'
+            ]
           }
         ]
       }
@@ -6471,6 +6653,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             title: 'Virtual Probability Lab',
             instructions: 'Conduct probability experiments virtually',
             component: 'VirtualProbabilityLab'
+          },
+          {
+            id: 'probability-simulator-practice',
+            type: 'input',
+            title: 'Probability Simulation Practice',
+            instructions: 'Predict and then simulate to compare outcomes',
+            component: 'ProbabilitySimulator',
+            skillId: 'PROB_SIMULATE',
+            objectives: [
+              'Compare experimental and theoretical probabilities',
+              'Assess variability with sample size'
+            ],
+            hints: [
+              'Record each trial accurately',
+              'Larger samples reduce variability',
+              'Compute fraction successes / trials'
+            ]
           }
         ]
       }
@@ -6564,6 +6763,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
           }
         ],
         interactiveElements: [
+          {
+            id: 'perimeter-practice',
+            type: 'calculator',
+            title: 'Perimeter Practice',
+            instructions: 'Calculate perimeter of rectangles using P = 2(l + w)',
+            component: 'PerimeterCalculator',
+            skillId: 'PERIM_RECT',
+            objectives: [
+              'Apply P = 2(l + w) for rectangles',
+              'Relate repeated addition to perimeter formula'
+            ],
+            hints: [
+              'Add length and width first',
+              'Multiply the sum by 2',
+              'Opposite sides of rectangle are equal'
+            ]
+          },
           {
             id: 'perimeter-builder',
             type: 'dragDrop',
@@ -6670,6 +6886,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             title: 'Build Decimal Numbers',
             instructions: 'Create decimal numbers using place value blocks',
             component: 'DecimalBuilder'
+          },
+          {
+            id: 'decimal-place-identify',
+            type: 'clickable',
+            title: 'Place Value Identifier',
+            instructions: 'Identify digits in specified decimal places',
+            component: 'DecimalPlaceChart',
+            skillId: 'DECIMAL_PLACE_VALUE',
+            objectives: [
+              'Identify value of digits to thousandths',
+              'Relate place name to fractional value'
+            ],
+            hints: [
+              'Tenths is first after decimal',
+              'Hundredths is second',
+              'Each place is ten times smaller'
+            ]
           }
         ]
       }
@@ -6777,6 +7010,23 @@ export const COMPREHENSIVE_GRADE_6_CURRICULUM: MathTopic[] = [
             title: 'Number Line Operations',
             instructions: 'Use number line to add and subtract integers',
             component: 'NumberLineOperations'
+          },
+          {
+            id: 'integer-calculator-practice',
+            type: 'calculator',
+            title: 'Integer Expression Practice',
+            instructions: 'Evaluate integer addition and subtraction expressions',
+            component: 'IntegerCalculator',
+            skillId: 'INT_BASIC_ARITH',
+            objectives: [
+              'Add and subtract integers with unlike signs',
+              'Apply sign rules consistently'
+            ],
+            hints: [
+              'Same signs: add and keep sign',
+              'Different signs: subtract & keep larger absolute value sign',
+              'Subtracting a negative becomes addition'
+            ]
           }
         ]
       }

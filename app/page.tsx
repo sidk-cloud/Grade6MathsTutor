@@ -16,13 +16,15 @@ import {
   Award,
   Users
 } from 'lucide-react';
-import { GRADE_6_CURRICULUM, CATEGORY_COLORS, CATEGORY_DESCRIPTIONS, MathTopic, UserProgress } from '../lib/curriculum';
+import { GRADE_6_CURRICULUM, CATEGORY_COLORS, CATEGORY_DESCRIPTIONS, MathTopic, UserProgress } from '../lib/comprehensive-curriculum';
 import TopicCard from '../components/TopicCard';
 import ProgressTracker from '../components/ProgressTracker';
 import VoiceAssistant from '../components/VoiceAssistant';
 import ChatBot from '../components/ChatBot';
 import Dashboard from '../components/Dashboard';
 import LessonViewer from '../components/LessonViewer';
+import { MasteryProvider, useMastery } from '../context/MasteryContext';
+import AdaptiveProgressDashboard from '../components/AdaptiveProgressDashboard';
 
 export default function Home() {
   const [currentView, setCurrentView] = useState<'dashboard' | 'topics' | 'topic' | 'assessment'>('dashboard');
@@ -40,6 +42,7 @@ export default function Home() {
   });
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
 
   // Load saved progress from localStorage
   useEffect(() => {
@@ -91,6 +94,29 @@ export default function Home() {
     saveProgress(updatedProgress);
   };
 
+  const handleSkillSelect = (skillId: string) => {
+    setSelectedSkillId(selectedSkillId === skillId ? null : skillId);
+    
+    // Find topics that match this skill ID
+    const matchingTopics = GRADE_6_CURRICULUM.filter(topic => 
+      topic.concepts?.some(concept => 
+        concept.interactiveElements?.some(element => 
+          (element as any).skillId === skillId
+        )
+      )
+    );
+
+    // If we find matching topics, offer to navigate to the first one
+    if (matchingTopics.length > 0) {
+      const shouldNavigate = window.confirm(
+        `Found ${matchingTopics.length} topic(s) for skill "${skillId}". Navigate to "${matchingTopics[0].title}"?`
+      );
+      if (shouldNavigate) {
+        handleTopicSelect(matchingTopics[0]);
+      }
+    }
+  };
+
   const getRecommendedTopics = () => {
     return GRADE_6_CURRICULUM.filter(topic => {
       // Show topics that haven't been completed and have prerequisites met
@@ -103,13 +129,37 @@ export default function Home() {
   };
 
   const renderDashboard = () => (
-    <Dashboard 
-      userProgress={userProgress}
-      curriculum={GRADE_6_CURRICULUM}
-      onTopicSelect={handleTopicSelect}
-      onViewChange={(view) => setCurrentView(view as 'dashboard' | 'topics' | 'topic' | 'assessment')}
-      getRecommendedTopics={getRecommendedTopics}
-    />
+    <div className="grid lg:grid-cols-3 gap-8">
+      <div className="lg:col-span-2 space-y-8">
+        <Dashboard 
+          userProgress={userProgress}
+          curriculum={GRADE_6_CURRICULUM}
+          onTopicSelect={handleTopicSelect}
+          onViewChange={(view) => setCurrentView(view as 'dashboard' | 'topics' | 'topic' | 'assessment')}
+          getRecommendedTopics={getRecommendedTopics}
+        />
+      </div>
+      <div className="space-y-6">
+        <div className="bg-white p-4 rounded-lg shadow">
+          <AdaptiveProgressDashboard onSelectSkill={handleSkillSelect} />
+        </div>
+        
+        {selectedSkillId && (
+          <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+            <h3 className="font-semibold text-blue-800 mb-2">Selected Skill: {selectedSkillId}</h3>
+            <p className="text-blue-700 text-sm mb-3">
+              This skill tracks your performance on {selectedSkillId.replace(/_/g, ' ').toLowerCase()} activities.
+            </p>
+            <button
+              onClick={() => setSelectedSkillId(null)}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+            >
+              ✕ Close
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   );
 
   const renderTopicGrid = () => (
@@ -180,6 +230,7 @@ export default function Home() {
   );
 
   return (
+  <MasteryProvider>
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
@@ -323,5 +374,6 @@ export default function Home() {
         />
       )}
     </div>
+  </MasteryProvider>
   );
 }

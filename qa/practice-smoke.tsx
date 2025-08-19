@@ -1,7 +1,7 @@
 // Lightweight QA smoke harness (manual run via ts-node / next page import)
 import React from 'react';
 import InteractivePractice from '../components/InteractivePractice';
-import { InteractiveElement } from '../lib/curriculum';
+import { InteractiveElement } from '../lib/comprehensive-curriculum';
 
 const sampleElements: InteractiveElement[] = [
   { id: 'qa-factor', type: 'input', title: 'QA Factor', instructions: 'Find all factors', component: 'FactorDiscovery' },

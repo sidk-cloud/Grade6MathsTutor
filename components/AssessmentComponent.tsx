@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { CheckCircle, XCircle, HelpCircle, Star, RotateCcw } from 'lucide-react';
-import { Assessment } from '../lib/curriculum';
+import { Assessment } from '../lib/comprehensive-curriculum';
 
 interface AssessmentComponentProps {
   assessments: Assessment[];

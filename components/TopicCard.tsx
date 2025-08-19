@@ -1,7 +1,7 @@
 'use client';
 
 import { Clock, Star, Lock, CheckCircle, PlayCircle } from 'lucide-react';
-import { MathTopic, DIFFICULTY_LABELS, CATEGORY_COLORS } from '../lib/curriculum';
+import { MathTopic, DIFFICULTY_LABELS, CATEGORY_COLORS } from '../lib/comprehensive-curriculum';
 
 interface TopicCardProps {
   topic: MathTopic;
