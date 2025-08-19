@@ -18,7 +18,9 @@ export default function Dashboard({
   onViewChange,
   getRecommendedTopics
 }: DashboardProps) {
-  const completionPercentage = (userProgress.completedTopics.length / curriculum.length) * 100;
+  // Use unique topics for completion percentage
+  const uniqueCompletedTopics = Array.from(new Set(userProgress.completedTopics));
+  const completionPercentage = (uniqueCompletedTopics.length / curriculum.length) * 100;
   const recommendedTopics = getRecommendedTopics();
   
   // Calculate statistics
@@ -43,6 +45,15 @@ export default function Dashboard({
     calculatedAverage: averageScore
   });
 
+  // Debug logging for completion tracking
+  console.log('Dashboard Debug - Completion Tracking:', {
+    completedTopics: userProgress.completedTopics,
+    uniqueTopics: uniqueCompletedTopics,
+    completedCount: userProgress.completedTopics.length,
+    uniqueCount: uniqueCompletedTopics.length,
+    totalTopics: curriculum.length
+  });
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
@@ -63,7 +74,7 @@ export default function Dashboard({
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Topics Completed</h3>
           <p className="text-3xl font-bold text-blue-600 mb-2">
-            {userProgress.completedTopics.length}/{curriculum.length}
+            {uniqueCompletedTopics.length}/{curriculum.length}
           </p>
           <div className="progress-bar">
             <div 
@@ -184,7 +195,7 @@ export default function Dashboard({
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Topics Mastered</span>
-              <span className="font-medium">{userProgress.completedTopics.length}</span>
+              <span className="font-medium">{uniqueCompletedTopics.length}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Total Points</span>

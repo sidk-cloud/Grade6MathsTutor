@@ -58,8 +58,9 @@ export default function Home() {
     localStorage.setItem('mathTutorProgress', JSON.stringify(progress));
   };
 
-  // Calculate completion percentage
-  const completionPercentage = GRADE_6_CURRICULUM ? (userProgress.completedTopics.length / GRADE_6_CURRICULUM.length) * 100 : 0;
+  // Calculate completion percentage using unique topics
+  const uniqueCompletedTopics = Array.from(new Set(userProgress.completedTopics));
+  const completionPercentage = GRADE_6_CURRICULUM ? (uniqueCompletedTopics.length / GRADE_6_CURRICULUM.length) * 100 : 0;
 
   const handleTopicSelect = (topic: MathTopic) => {
     setSelectedTopic(topic);
@@ -75,12 +76,18 @@ export default function Home() {
   };
 
   const markTopicComplete = (topicId: string, score: number = 100) => {
+    const wasAlreadyCompleted = userProgress.completedTopics.includes(topicId);
+    const previousScore = userProgress.assessmentScores[topicId] || 0;
+    
     const updatedProgress = {
       ...userProgress,
       completedTopics: [...userProgress.completedTopics.filter(id => id !== topicId), topicId],
       assessmentScores: { ...userProgress.assessmentScores, [topicId]: score },
-      totalScore: userProgress.totalScore + score,
-      level: Math.floor((userProgress.completedTopics.length + 1) / 3) + 1
+      // Only add to total score if this is a new completion, or add the difference if retaking
+      totalScore: wasAlreadyCompleted 
+        ? userProgress.totalScore - previousScore + score 
+        : userProgress.totalScore + score,
+      level: Math.floor((Array.from(new Set([...userProgress.completedTopics, topicId])).length) / 3) + 1
     };
     
     // Check for achievements
@@ -184,8 +191,8 @@ export default function Home() {
             ></div>
           </div>
           <div className="flex justify-between text-sm text-gray-500 mt-2">
-            <span>{userProgress.completedTopics.length} topics completed</span>
-            <span>{GRADE_6_CURRICULUM.length - userProgress.completedTopics.length} remaining</span>
+            <span>{uniqueCompletedTopics.length} topics completed</span>
+            <span>{GRADE_6_CURRICULUM.length - uniqueCompletedTopics.length} remaining</span>
           </div>
         </div>
       </div>
@@ -334,14 +341,20 @@ export default function Home() {
             topic={selectedTopic}
             voiceEnabled={isVoiceEnabled}
             onComplete={(score: number) => {
+              const wasAlreadyCompleted = userProgress.completedTopics.includes(selectedTopic.id);
+              const previousScore = userProgress.assessmentScores[selectedTopic.id] || 0;
+              
               const newProgress = {
                 ...userProgress,
-                completedTopics: [...userProgress.completedTopics, selectedTopic.id],
+                completedTopics: [...userProgress.completedTopics.filter(id => id !== selectedTopic.id), selectedTopic.id],
                 assessmentScores: {
                   ...userProgress.assessmentScores,
                   [selectedTopic.id]: score
                 },
-                totalScore: userProgress.totalScore + score
+                // Only add to total score if this is a new completion, or add the difference if retaking
+                totalScore: wasAlreadyCompleted 
+                  ? userProgress.totalScore - previousScore + score 
+                  : userProgress.totalScore + score
               };
               setUserProgress(newProgress);
               localStorage.setItem('mathTutorProgress', JSON.stringify(newProgress));
