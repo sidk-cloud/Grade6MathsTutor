@@ -29,47 +29,33 @@ export default function ChatBot({ isOpen, onClose, currentTopic }: ChatBotProps)
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
 
-  // Simple response logic - in a real app, this would connect to an AI API
-  const generateResponse = (userMessage: string): string => {
-    const message = userMessage.toLowerCase();
-    
-    if (message.includes('fraction')) {
-      return "Fractions represent parts of a whole! Think of a pizza - if you cut it into 4 equal pieces and eat 1 piece, you've eaten 1/4 of the pizza. The bottom number (denominator) tells us how many equal parts the whole is divided into, and the top number (numerator) tells us how many parts we have.";
+  const generateAIResponse = async (userMessage: string): Promise<string> => {
+    try {
+      const contextPrompt = currentTopic 
+        ? `The student is currently learning about "${currentTopic.title}". Context: ${currentTopic.description}` 
+        : "This is a general Grade 6 mathematics question.";
+
+      const response = await fetch('/Grade6MathsTutor/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userMessage,
+          context: contextPrompt
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to get AI response');
+      }
+
+      const data = await response.json();
+      return data.response;
+    } catch (error) {
+      console.error('AI response error:', error);
+      return "I'm having trouble connecting right now. Can you try rephrasing your question?";
     }
-    
-    if (message.includes('integer') || message.includes('negative')) {
-      return "Integers include positive numbers, negative numbers, and zero! Negative numbers are really useful - they can represent temperatures below zero, money you owe, or floors below ground level. On a number line, negative numbers go to the left of zero.";
-    }
-    
-    if (message.includes('prime')) {
-      return "A prime number is a special number that can only be divided evenly by 1 and itself. For example, 7 is prime because you can only divide it evenly by 1 and 7. But 8 is not prime because you can divide it by 1, 2, 4, and 8.";
-    }
-    
-    if (message.includes('pattern') || message.includes('sequence')) {
-      return "Number patterns are like puzzles! Look for what's changing between each number. Are we adding the same amount each time? Multiplying? Once you find the rule, you can predict what comes next!";
-    }
-    
-    if (message.includes('metric') || message.includes('convert')) {
-      return "The metric system is based on 10s, which makes it easy to convert! Remember: 1 metre = 100 centimetres, 1 litre = 1000 millilitres, 1 kilogram = 1000 grams. To convert to a smaller unit, multiply. To convert to a larger unit, divide.";
-    }
-    
-    if (message.includes('area') || message.includes('rectangle')) {
-      return "The area of a rectangle is length × width. Think of it as counting how many unit squares fit inside the rectangle. If a rectangle is 5 units long and 3 units wide, its area is 5 × 3 = 15 square units.";
-    }
-    
-    if (message.includes('help') || message.includes('stuck')) {
-      return "Don't worry - everyone gets stuck sometimes! Try breaking the problem into smaller steps. Read the question carefully, identify what you know and what you need to find, then choose the right operation. Would you like me to help with a specific problem?";
-    }
-    
-    // Default responses
-    const defaultResponses = [
-      "That's a great question! Let me help you understand that concept better.",
-      "I can see you're thinking about this topic. Let's work through it together!",
-      "Mathematics is all about practice and understanding. What specific part would you like me to explain?",
-      "Good question! Can you tell me more about what you're finding challenging?"
-    ];
-    
-    return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
   };
 
   const handleSendMessage = async () => {
@@ -83,21 +69,32 @@ export default function ChatBot({ isOpen, onClose, currentTopic }: ChatBotProps)
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = inputValue;
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate API delay
-    setTimeout(() => {
+    try {
+      const aiResponse = await generateAIResponse(currentInput);
       const botResponse: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: generateResponse(inputValue),
+        content: aiResponse,
         isBot: true,
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, botResponse]);
+    } catch (error) {
+      console.error('Error getting AI response:', error);
+      const fallbackResponse: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        content: "I'm having trouble connecting right now. Can you try rephrasing your question?",
+        isBot: true,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, fallbackResponse]);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -129,7 +126,7 @@ export default function ChatBot({ isOpen, onClose, currentTopic }: ChatBotProps)
             className={`flex ${message.isBot ? 'justify-start' : 'justify-end'}`}
           >
             <div
-              className={`max-w-xs px-3 py-2 rounded-lg text-sm ${
+              className={`max-w-sm px-3 py-2 rounded-lg text-sm whitespace-pre-wrap ${
                 message.isBot
                   ? 'bg-gray-100 text-gray-800'
                   : 'bg-accent-600 text-white'
