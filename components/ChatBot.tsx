@@ -35,7 +35,7 @@ export default function ChatBot({ isOpen, onClose, currentTopic }: ChatBotProps)
         ? `The student is currently learning about "${currentTopic.title}". Context: ${currentTopic.description}` 
         : "This is a general Grade 6 mathematics question.";
 
-      const response = await fetch('/Grade6MathsTutor/api/chat', {
+      const response = await fetch('/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
