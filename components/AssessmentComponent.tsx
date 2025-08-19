@@ -14,6 +14,7 @@ interface UserAnswer {
   assessmentId: string;
   answer: string | number;
   isCorrect: boolean;
+  points: number; // Add points to track actual points earned
 }
 
 export default function AssessmentComponent({ assessments, onComplete, topicTitle }: AssessmentComponentProps) {
@@ -26,9 +27,23 @@ export default function AssessmentComponent({ assessments, onComplete, topicTitl
 
   const currentAssessment = assessments[currentIndex];
   const isLastQuestion = currentIndex === assessments.length - 1;
-  const totalScore = userAnswers.reduce((sum, answer) => sum + (answer.isCorrect ? currentAssessment?.points || 10 : 0), 0);
+  const totalScore = userAnswers.reduce((sum, answer) => sum + answer.points, 0);
   const maxScore = assessments.reduce((sum, assessment) => sum + assessment.points, 0);
   const scorePercentage = maxScore > 0 ? Math.round((totalScore / maxScore) * 100) : 0;
+  
+  // Debug logging
+  console.log('Assessment Debug:', {
+    currentQuestion: currentIndex + 1,
+    totalAnswered: userAnswers.length,
+    totalScore,
+    maxScore,
+    scorePercentage,
+    userAnswers: userAnswers.map(a => ({ 
+      id: a.assessmentId, 
+      correct: a.isCorrect, 
+      points: a.points 
+    }))
+  });
 
   const handleAnswer = (selectedAnswer: string | number) => {
     if (!currentAssessment) return;
@@ -38,7 +53,8 @@ export default function AssessmentComponent({ assessments, onComplete, topicTitl
     const newAnswer: UserAnswer = {
       assessmentId: currentAssessment.id,
       answer: selectedAnswer,
-      isCorrect
+      isCorrect,
+      points: isCorrect ? currentAssessment.points : 0
     };
 
     const updatedAnswers = [...userAnswers.filter(a => a.assessmentId !== currentAssessment.id), newAnswer];
