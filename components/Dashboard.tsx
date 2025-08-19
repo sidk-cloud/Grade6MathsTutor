@@ -23,9 +23,25 @@ export default function Dashboard({
   
   // Calculate statistics
   const totalTimeSpent = Object.values(userProgress.timeSpent).reduce((sum, time) => sum + time, 0);
-  const averageScore = Object.values(userProgress.assessmentScores).length > 0
-    ? Object.values(userProgress.assessmentScores).reduce((sum, score) => sum + score, 0) / Object.values(userProgress.assessmentScores).length
+  
+  // Ensure all scores are numbers, not strings
+  const scores = Object.values(userProgress.assessmentScores).map(score => 
+    typeof score === 'string' ? parseFloat(score) : score
+  ).filter(score => !isNaN(score));
+  
+  const averageScore = scores.length > 0
+    ? scores.reduce((sum, score) => sum + score, 0) / scores.length
     : 0;
+
+  // Debug logging for assessment scores
+  console.log('Dashboard Debug - Assessment Scores:', {
+    rawAssessmentScores: userProgress.assessmentScores,
+    rawScores: Object.values(userProgress.assessmentScores),
+    processedScores: scores,
+    totalScores: scores.reduce((sum, score) => sum + score, 0),
+    countScores: scores.length,
+    calculatedAverage: averageScore
+  });
 
   return (
     <div className="space-y-8">

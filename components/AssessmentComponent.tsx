@@ -65,7 +65,16 @@ export default function AssessmentComponent({ assessments, onComplete, topicTitl
     setTimeout(() => {
       if (isLastQuestion) {
         setShowResults(true);
-        onComplete(scorePercentage);
+        // Calculate score with updated answers to include the last answer
+        const finalTotalScore = updatedAnswers.reduce((sum, answer) => sum + answer.points, 0);
+        const finalScorePercentage = maxScore > 0 ? Math.round((finalTotalScore / maxScore) * 100) : 0;
+        console.log('Assessment Final Score Debug:', {
+          updatedAnswers,
+          finalTotalScore,
+          maxScore,
+          finalScorePercentage
+        });
+        onComplete(finalScorePercentage);
       } else {
         setCurrentIndex(currentIndex + 1);
         setInputValue('');
@@ -97,6 +106,10 @@ export default function AssessmentComponent({ assessments, onComplete, topicTitl
   }
 
   if (showResults) {
+    // Calculate final scores for results display
+    const finalTotalScore = userAnswers.reduce((sum, answer) => sum + answer.points, 0);
+    const finalScorePercentage = maxScore > 0 ? Math.round((finalTotalScore / maxScore) * 100) : 0;
+    
     return (
       <div className="bg-white p-6 rounded-lg shadow-md">
         <div className="text-center mb-6">
@@ -110,7 +123,7 @@ export default function AssessmentComponent({ assessments, onComplete, topicTitl
         {/* Score Display */}
         <div className="grid md:grid-cols-3 gap-4 mb-6">
           <div className="text-center p-4 bg-blue-50 rounded-lg">
-            <p className="text-3xl font-bold text-blue-600">{scorePercentage}%</p>
+            <p className="text-3xl font-bold text-blue-600">{finalScorePercentage}%</p>
             <p className="text-sm text-blue-800">Overall Score</p>
           </div>
           <div className="text-center p-4 bg-green-50 rounded-lg">
@@ -120,19 +133,19 @@ export default function AssessmentComponent({ assessments, onComplete, topicTitl
             <p className="text-sm text-green-800">Correct Answers</p>
           </div>
           <div className="text-center p-4 bg-purple-50 rounded-lg">
-            <p className="text-3xl font-bold text-purple-600">{totalScore}</p>
+            <p className="text-3xl font-bold text-purple-600">{finalTotalScore}</p>
             <p className="text-sm text-purple-800">Points Earned</p>
           </div>
         </div>
 
         {/* Performance Feedback */}
         <div className="mb-6 p-4 rounded-lg text-center">
-          {scorePercentage >= 90 ? (
+          {finalScorePercentage >= 90 ? (
             <div className="bg-green-50 border border-green-200">
               <p className="text-green-800 font-semibold">Excellent work! 🌟</p>
               <p className="text-green-700">You've mastered this topic!</p>
             </div>
-          ) : scorePercentage >= 70 ? (
+          ) : finalScorePercentage >= 70 ? (
             <div className="bg-blue-50 border border-blue-200">
               <p className="text-blue-800 font-semibold">Good job! 👍</p>
               <p className="text-blue-700">You're getting the hang of it!</p>
