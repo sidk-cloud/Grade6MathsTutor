@@ -5,6 +5,23 @@ import { GRADE_6_CURRICULUM } from '../lib/comprehensive-curriculum';
 
 // Function to get user-friendly names for skill IDs
 const getSkillDisplayName = (skillId: string): string => {
+  // Common skill name mappings
+  const skillMappings: Record<string, string> = {
+    'addition-basic': 'Basic Addition',
+    'subtraction-basic': 'Basic Subtraction',
+    'multiplication-tables': 'Multiplication Tables',
+    'fractions-intro': 'Introduction to Fractions',
+    'decimal-place-value': 'Decimal Place Value',
+    'percentage-basic': 'Basic Percentages',
+    'geometry-shapes': 'Geometry & Shapes',
+    'measurement-units': 'Measurement Units'
+  };
+
+  // Check for direct mapping first
+  if (skillMappings[skillId]) {
+    return skillMappings[skillId];
+  }
+
   // Look through all topics and their interactive elements to find the matching skillId
   for (const topic of GRADE_6_CURRICULUM) {
     for (const concept of topic.concepts || []) {
@@ -106,6 +123,24 @@ export const AdaptiveProgressDashboard: React.FC<AdaptiveProgressDashboardProps>
           {skillList.map(s=>{
             const color = s.level>=5? 'bg-green-700': s.level>=4? 'bg-green-600': s.level>=3? 'bg-green-500': s.level>=2? 'bg-yellow-400': s.level>=1? 'bg-orange-400':'bg-red-400';
             const displayName = getSkillDisplayName(s.skillId);
+            
+            // Create a better abbreviation from the display name
+            const createAbbreviation = (name: string) => {
+              // If it's a short name, use first few chars
+              if (name.length <= 6) return name.slice(0, 4);
+              
+              // Extract first letter of each word
+              const words = name.split(' ');
+              if (words.length >= 2) {
+                return words.map(w => w[0]).join('').slice(0, 4).toUpperCase();
+              }
+              
+              // Fallback to first 4 characters
+              return name.slice(0, 4).toUpperCase();
+            };
+            
+            const abbreviation = createAbbreviation(displayName);
+            
             return (
               <button 
                 key={s.skillId} 
@@ -113,7 +148,7 @@ export const AdaptiveProgressDashboard: React.FC<AdaptiveProgressDashboardProps>
                 title={`${displayName}\nLevel ${s.level}\nAccuracy ${s.accuracy.toFixed(0)}%\nStreak ${s.streak}`} 
                 className={`h-10 rounded flex items-center justify-center text-[10px] font-medium text-white ${color} hover:opacity-80 transition-opacity`}
               >
-                {s.skillId.replace(/[^A-Z0-9]/gi,'').slice(-4)}
+                {abbreviation}
               </button>
             );
           })}

@@ -2,6 +2,56 @@ import { NextRequest, NextResponse } from 'next/server';
 import { InferenceClient } from '@huggingface/inference';
 import Groq from 'groq-sdk';
 
+// --- Prompt Helpers ---------------------------------------------------------
+
+// Central system persona: ONLY math help; transform non-math queries into math contexts.
+const SYSTEM_PROMPT = `You are a patient, encouraging Grade 6 mathematics tutor.
+
+GOALS
+1. Explain clearly using age-appropriate language.
+2. Keep answers structured: (a) Quick Answer or Reframed Problem, (b) Step-by-Step, (c) Example, (d) Quick Check question.
+3. Use concise sentences; avoid jargon unless explained.
+
+STRICT RULES
+- ONLY respond with mathematics-related explanations.
+- If the student's question is not about math (e.g. "What's your name?", "Tell me a story", random chatter), immediately and cheerfully reframe it into a Grade 6 math problem inspired by their wording, then teach a related concept.
+- Never discuss topics outside math (politics, health, personal data, coding, etc.). If asked, gently pivot: create a math scenario instead.
+- Do not invent advanced content beyond Grade 6 scope.
+- Keep tone supportive; avoid saying "I can't"—instead positively redirect into math.
+
+STYLE
+- Use friendly encouragement (e.g., "Great thinking!" sparingly).
+- Prefer concrete numbers and visuals described in words ("Imagine a number line...").
+- End with a short follow-up question that checks understanding.
+
+OUTPUT FORMAT TEMPLATE
+"Problem: ...\nSolution Steps: ...\nExample: ...\nYour Turn: (brief check)"
+
+If the user already asked a clear math question, keep their wording; otherwise, create an age-appropriate math prompt first.
+`;
+
+// Utility to judge if a message is probably math focused (simple heuristic)
+function isLikelyMath(message: string): boolean {
+  const mathTerms = /\b(fraction|decimal|percent|percentage|integer|number|add|plus|sum|subtract|minus|difference|multiply|times|product|divide|quotient|area|perimeter|prime|factor|multiple|probability|graph|ratio|proportion)\b/i;
+  const digits = /\d/;
+  return mathTerms.test(message) || digits.test(message);
+}
+
+// Build the user payload content. Keeps only student context & question—persona lives in SYSTEM_PROMPT.
+function buildUserContent(question: string, context?: string): string {
+  const trimmed = question?.trim() || '';
+  const mathLikely = isLikelyMath(trimmed);
+  const meta = {
+    context: context || null,
+    original_question: trimmed,
+    classified_as_math: mathLikely,
+    instruction: mathLikely
+      ? 'Answer the math question for a Grade 6 student.'
+      : 'Question is NOT clearly math; first reframe into a Grade 6 math problem linked to the user intent, then teach the concept.'
+  };
+  return `USER PAYLOAD JSON\n${JSON.stringify(meta, null, 2)}`;
+}
+
 // Groq (Llama 2) API function
 async function callGroqAPI(message: string, context?: string): Promise<string | null> {
   try {
@@ -14,28 +64,19 @@ async function callGroqAPI(message: string, context?: string): Promise<string | 
 
     const groq = new Groq({ apiKey });
 
-    // Create educational prompt for Grade 6 mathematics
-    const educationalPrompt = context 
-      ? `You are a helpful Grade 6 mathematics tutor. The student is currently learning about: ${context}. 
-         Please provide a clear, age-appropriate explanation. Student question: ${message}`
-      : `You are a helpful Grade 6 mathematics tutor. Please provide a clear, age-appropriate explanation for this question: ${message}`;
+  // Build user content focusing ONLY on question/context; persona + rules live in SYSTEM_PROMPT
+  const userContent = buildUserContent(message, context);
 
     console.log('Calling Groq API with Llama 2...');
     
     const chatCompletion = await groq.chat.completions.create({
       messages: [
-        {
-          role: "system",
-          content: "You are a patient and encouraging Grade 6 mathematics tutor. Provide clear, simple explanations with examples when helpful. Keep responses concise but educational."
-        },
-        {
-          role: "user",
-          content: educationalPrompt
-        }
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: userContent }
       ],
-      model: "llama3-8b-8192", // Updated to current Groq model
-      temperature: 0.7,
-      max_tokens: 500, // Increased from 200 to allow longer explanations
+      model: 'llama3-8b-8192',
+      temperature: 0.5, // Slightly lower for consistency & correctness
+      max_tokens: 550,
     });
 
     const aiResponse = chatCompletion.choices[0]?.message?.content;
@@ -164,14 +205,8 @@ async function callHuggingFaceAPI(message: string, context?: string): Promise<st
     // Initialize the Hugging Face Inference client
     const hf = new InferenceClient(apiKey);
 
-    // Create a contextual prompt for better educational responses
-    const educationalPrompt = context 
-      ? `You are a helpful Grade 6 mathematics tutor. The student is currently learning about: ${context}. 
-         Student question: ${message}
-         Please provide a clear, age-appropriate explanation with examples.`
-      : `You are a helpful Grade 6 mathematics tutor. 
-         Student question: ${message}
-         Please provide a clear, age-appropriate explanation with examples.`;
+  const userContent = buildUserContent(message, context);
+  const educationalPrompt = `${SYSTEM_PROMPT}\n---\n${userContent}`;
 
     // Try text generation with a suitable model
     try {
@@ -180,8 +215,8 @@ async function callHuggingFaceAPI(message: string, context?: string): Promise<st
         model: 'deepseek-ai/DeepSeek-R1',
         inputs: educationalPrompt,
         parameters: {
-          max_new_tokens: 100,
-          temperature: 0.7,
+          max_new_tokens: 120,
+          temperature: 0.55,
           do_sample: true,
           return_full_text: false,
         },
@@ -199,7 +234,7 @@ async function callHuggingFaceAPI(message: string, context?: string): Promise<st
       try {
         const result = await hf.textGeneration({
           model: 'openai/gpt-oss-120b',
-          inputs: `Math tutor: ${message}`,
+          inputs: `${SYSTEM_PROMPT}\n---\nFallback user content:\n${userContent}`,
           parameters: {
             max_new_tokens: 80,
             temperature: 0.8,
@@ -275,6 +310,13 @@ async function tryAlternativeModel(message: string, context?: string): Promise<s
 }
 
 function generateFallbackResponse(message: string, context?: string): string {
+  // Enforce math-only fallback policy with transformation if needed
+  const isMath = isLikelyMath(message || '');
+  if (!isMath) {
+    // Simple transformation: turn arbitrary query into a math word problem scaffold
+    const safe = (message || 'a random question').slice(0, 120);
+    return `Problem: Let's turn your request about "${safe}" into a math idea. Suppose we collect 12 data points related to it and group them equally among 3 categories. How many go in each group?\nSolution Steps: 1) Identify total (12). 2) Identify groups (3). 3) Divide 12 ÷ 3 = 4.\nExample: If it were 18 items and 6 groups, 18 ÷ 6 = 3.\nYour Turn: If there were 20 items and 5 groups, how many in each?`;
+  }
   const lowerMessage = message.toLowerCase();
   
   // Context-specific responses for current topic
